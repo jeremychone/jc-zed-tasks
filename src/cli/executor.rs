@@ -17,9 +17,9 @@ pub fn execute() -> Result<()> {
 // region:    --- Exec Handlers
 
 fn exec_tmux_run_aip(args: TmuxRunAipArgs) -> Result<()> {
-	let panes = tmux::list_panes(args.dir.as_deref(), args.pane_name.as_deref())?;
+	let pane = tmux::find_first_pane(args.dir.as_deref(), args.pane_name.as_deref())?;
 
-	if let Some(pane) = panes.first() {
+	if let Some(pane) = pane {
 		println!("{}:{}:{}", pane.session_id, pane.window_id, pane.id);
 	} else {
 		println!("NONE");

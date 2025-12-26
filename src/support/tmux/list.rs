@@ -100,6 +100,11 @@ pub fn list_panes(folder: Option<&str>, pane_name: Option<&str>) -> Result<Vec<T
 	Ok(panes)
 }
 
+pub fn find_first_pane(folder: Option<&str>, pane_name: Option<&str>) -> Result<Option<TmuxPane>> {
+	let panes = list_panes(folder, pane_name)?;
+	Ok(panes.into_iter().next())
+}
+
 // region:    --- Support
 
 struct LineParts {
