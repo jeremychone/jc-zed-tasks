@@ -1,9 +1,22 @@
+use derive_more::{Deref, Display, From};
+use std::sync::Arc;
+
 // region:    --- Data Structures
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, Deref, From)]
+pub struct SessionId(Arc<str>);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, Deref, From)]
+pub struct WindowId(Arc<str>);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, Deref, From)]
+pub struct PaneId(Arc<str>);
 
 #[derive(Debug, Clone)]
 pub struct TmuxPane {
-	pub session_id: String,
-	pub window_id: String,
+	pub id: PaneId,
+	pub session_id: SessionId,
+	pub window_id: WindowId,
 	pub index: usize,
 	pub title: String,
 	pub path: String,
@@ -12,6 +25,7 @@ pub struct TmuxPane {
 
 #[derive(Debug, Clone)]
 pub struct TmuxWindow {
+	pub id: WindowId,
 	pub index: usize,
 	pub name: String,
 	pub panes: Vec<TmuxPane>,
@@ -19,6 +33,7 @@ pub struct TmuxWindow {
 
 #[derive(Debug, Clone)]
 pub struct TmuxSession {
+	pub id: SessionId,
 	pub name: String,
 	pub attached: bool,
 	pub windows: Vec<TmuxWindow>,

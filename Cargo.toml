@@ -12,4 +12,4 @@ unused = { level = "allow", priority = -1 } # For exploratory dev.
 clap = { version = "4", features = ["derive"] }
 
 # -- Others
-derive_more = { version = "2", features = ["from", "display"] }
+derive_more = { version = "2", features = ["from", "display", "deref"] }
