@@ -10,10 +10,21 @@ pub struct CliCmd {
 #[derive(Subcommand, Debug)]
 pub enum CliSubCmd {
 	/// Run AIP in a tmux session
-	TmuxRunAip,
+	TmuxRunAip(TmuxRunAipArgs),
 
 	/// Create a .gitignore file at the specified path
 	CreateGitIgnore(CreateGitIgnoreArgs),
+}
+
+#[derive(Args, Debug)]
+pub struct TmuxRunAipArgs {
+	/// Filter by pane directory
+	#[arg(long)]
+	pub dir: Option<String>,
+
+	/// Filter by pane name (title)
+	#[arg(long)]
+	pub pane_name: Option<String>,
 }
 
 #[derive(Args, Debug)]

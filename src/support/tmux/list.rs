@@ -64,7 +64,7 @@ pub fn list_sessions() -> Result<TmuxSessions> {
 	Ok(TmuxSessions(sessions))
 }
 
-pub fn list_panes(folder: &str, pane_name: Option<&str>) -> Result<Vec<TmuxPane>> {
+pub fn list_panes(folder: Option<&str>, pane_name: Option<&str>) -> Result<Vec<TmuxPane>> {
 	let output = match run_proc("tmux", &["list-panes", "-a", "-F", TMUX_LIST_FORMAT]) {
 		Ok(out) => out,
 		Err(e) => {
@@ -80,7 +80,7 @@ pub fn list_panes(folder: &str, pane_name: Option<&str>) -> Result<Vec<TmuxPane>
 
 	for line in output.lines() {
 		if let Some(parts) = parse_line(line) {
-			let folder_match = parts.path == folder;
+			let folder_match = folder.map(|f| parts.path == f).unwrap_or(true);
 			let title_match = pane_name.map(|name| parts.p_title == name).unwrap_or(true);
 
 			if folder_match && title_match {
