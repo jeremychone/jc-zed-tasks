@@ -1,15 +1,16 @@
-use derive_more::{Deref, Display, From};
+use macro_rules_attribute as mra;
+use crate::Id;
 use std::sync::Arc;
 
 // region:    --- Data Structures
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, Deref, From)]
+#[mra::derive(Id!)]
 pub struct SessionId(Arc<str>);
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, Deref, From)]
+#[mra::derive(Id!)]
 pub struct WindowId(Arc<str>);
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Display, Deref, From)]
+#[mra::derive(Id!)]
 pub struct PaneId(Arc<str>);
 
 #[derive(Debug, Clone)]

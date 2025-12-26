@@ -13,3 +13,4 @@ clap = { version = "4", features = ["derive"] }
 
 # -- Others
 derive_more = { version = "2", features = ["from", "display", "deref"] }
+macro_rules_attribute = "0.2"
