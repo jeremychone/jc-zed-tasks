@@ -20,9 +20,10 @@ fn exec_tmux_run_aip(args: TmuxRunAipArgs) -> Result<()> {
 	let pane = tmux::find_first_pane(args.dir.as_deref(), args.pane_name.as_deref())?;
 
 	if let Some(pane) = pane {
-		println!("{}:{}:{}", pane.session_id, pane.window_id, pane.id);
+		tmux::send_keys(&pane.id, "r")?;
 	} else {
-		println!("NONE");
+		let name = args.pane_name.as_deref().unwrap_or("");
+		println!("no pane '{name}' found");
 	}
 
 	Ok(())

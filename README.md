@@ -7,7 +7,7 @@ A collection of CLI tools for AIP development workflows, including tmux session 
 ```sh
 # -- tmux-run-aip: Lists all current tmux sessions, windows, and panes.
 # Run the tmux session lister
-zed-tasks tmux-run-aip --dir /Users/jeremychone/_jeremy/_rust/utils/rust-zed-tasks --pane_name pro@coder
+zed-tasks tmux-run-aip --dir /Users/jeremychone/_jeremy/_rust/utils/rust-zed-tasks --pane-name pro@coder
 
 # -- create-git-ignore: Generates a .gitignore file at the specified target path.
 # Usage: zed-tasks create-git-ignore <path>
