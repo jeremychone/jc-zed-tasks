@@ -13,6 +13,13 @@ zed-tasks tmux-run-aip --dir /Users/jeremychone/_jeremy/_rust/utils/rust-zed-tas
 # Usage: zed-tasks create-git-ignore <path>
 zed-tasks create-git-ignore .
 
+```
+
+## Development
+
+
+```sh
+
 # -- Build and Help
 # Build the project
 cargo build --release
