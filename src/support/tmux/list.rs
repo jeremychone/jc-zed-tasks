@@ -3,7 +3,7 @@ use crate::support::proc::run_proc;
 use crate::support::tmux::types::*;
 use simple_fs::SPath;
 
-const TMUX_LIST_FORMAT: &str = "#{?session_attached,ATTACHED,DETACHED} #S:#I.#P #{window_name} [#{pane_title}] #{pane_current_path} #{pane_current_command} #{session_id} #{window_id} #{pane_id}";
+const TMUX_LIST_FORMAT: &str = "#{?session_attached,ATTACHED,DETACHED} #S:#I.#P #{window_name} [#{pane_title}] #{pane_current_path} #{pane_current_command} #{session_id} #{window_id} #{pane_id} #{window_active} #{pane_active}";
 
 pub fn list_sessions() -> Result<TmuxSessions> {
 	let output = match run_proc("tmux", &["list-panes", "-a", "-F", TMUX_LIST_FORMAT]) {
@@ -46,6 +46,7 @@ pub fn list_sessions() -> Result<TmuxSessions> {
 				index: parts.w_idx,
 				name: parts.w_name.clone(),
 				panes: Vec::new(),
+				active: parts.w_active,
 			});
 			session.windows.last_mut().unwrap()
 		};
@@ -59,6 +60,7 @@ pub fn list_sessions() -> Result<TmuxSessions> {
 			title: parts.p_title,
 			path: parts.path,
 			command: parts.cmd,
+			active: parts.p_active,
 		});
 	}
 
@@ -95,6 +97,7 @@ pub fn list_panes(folder: Option<impl AsRef<SPath>>, pane_name: Option<&str>) ->
 					title: parts.p_title,
 					path: parts.path,
 					command: parts.cmd,
+					active: parts.p_active,
 				});
 			}
 		}
@@ -122,10 +125,12 @@ struct LineParts {
 	p_title: String,
 	path: SPath,
 	cmd: String,
+	w_active: bool,
+	p_active: bool,
 }
 
 fn parse_line(line: &str) -> Option<LineParts> {
-	// Format: ATTACHED/DETACHED session_name:win_idx.pane_idx win_name [pane_title] path command session_id window_id pane_id
+	// Format: ATTACHED/DETACHED session_name:win_idx.pane_idx win_name [pane_title] path command session_id window_id pane_id window_active pane_active
 	let mut parts = line.splitn(3, ' ');
 	let attached_str = parts.next()?;
 	let session_full = parts.next()?;
@@ -138,7 +143,7 @@ fn parse_line(line: &str) -> Option<LineParts> {
 	let w_idx = w_idx_str.parse().ok()?;
 	let p_idx = p_idx_str.parse().ok()?;
 
-	// rest: win_name [pane_title] path command session_id window_id pane_id
+	// rest: win_name [pane_title] path command session_id window_id pane_id window_active pane_active
 	let open_bracket = rest.rfind(" [")?;
 	let close_bracket = rest.rfind(']')?;
 
@@ -146,10 +151,12 @@ fn parse_line(line: &str) -> Option<LineParts> {
 	let p_title = rest[open_bracket + 2..close_bracket].to_string();
 
 	let tail = rest[close_bracket + 1..].trim();
-	// tail: path command session_id window_id pane_id
-	let (tail_path_cmd_s_w, p_id_str) = tail.rsplit_once(' ')?;
-	let (tail_path_cmd_s, w_id_str) = tail_path_cmd_s_w.rsplit_once(' ')?;
-	let (path_cmd, s_id_str) = tail_path_cmd_s.rsplit_once(' ')?;
+	// tail: path command session_id window_id pane_id window_active pane_active
+	let (tail, p_active_str) = tail.rsplit_once(' ')?;
+	let (tail, w_active_str) = tail.rsplit_once(' ')?;
+	let (tail, p_id_str) = tail.rsplit_once(' ')?;
+	let (tail, w_id_str) = tail.rsplit_once(' ')?;
+	let (path_cmd, s_id_str) = tail.rsplit_once(' ')?;
 	let (path, cmd) = path_cmd.rsplit_once(' ').unwrap_or((path_cmd, ""));
 
 	Some(LineParts {
@@ -164,6 +171,8 @@ fn parse_line(line: &str) -> Option<LineParts> {
 		p_title,
 		path: SPath::new(path),
 		cmd: cmd.to_string(),
+		w_active: w_active_str == "1",
+		p_active: p_active_str == "1",
 	})
 }
 

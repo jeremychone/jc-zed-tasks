@@ -23,6 +23,7 @@ pub struct TmuxPane {
 	pub title: String,
 	pub path: SPath,
 	pub command: String,
+	pub active: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -31,6 +32,7 @@ pub struct TmuxWindow {
 	pub index: usize,
 	pub name: String,
 	pub panes: Vec<TmuxPane>,
+	pub active: bool,
 }
 
 #[derive(Debug, Clone)]

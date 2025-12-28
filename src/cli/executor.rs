@@ -20,16 +20,46 @@ pub fn execute() -> Result<()> {
 // region:    --- Exec Handlers
 
 fn exec_tmux_run_aip(args: TmuxRunAipArgs) -> Result<()> {
-	let pane_name = args.pane.as_deref().ok_or("tmux_run_aip must have a --pane")?;
-
 	let dir_str = args.dir.as_deref().ok_or("tmux_run_aip must have a --dir")?;
 	let dir = SPath::new(dir_str);
 
-	let pane = tmux::find_first_pane(Some(&dir), Some(pane_name))?;
+	let pane_id = if let Some(pane_name) = args.pane.as_deref() {
+		let pane = tmux::find_first_pane(Some(&dir), Some(pane_name))?;
+		let pane = pane.ok_or(format!("no pane '{pane_name}' found running at '{dir}'"))?;
+		pane.id
+	} else {
+		let sessions = tmux::list_sessions()?;
 
-	let pane = pane.ok_or(format!("no pane '{pane_name}' found running at '{dir}'"))?;
+		// -- Find the best window
+		let window = sessions
+			.into_iter()
+			.filter(|s| s.attached)
+			.flat_map(|s| s.windows)
+			.find(|w| w.active && w.panes.iter().any(|p| p.path == dir))
+			.or_else(|| {
+				// Fallback to any window in any session that has a pane in this dir
+				tmux::list_sessions()
+					.ok()?
+					.into_iter()
+					.flat_map(|s| s.windows)
+					.find(|w| w.panes.iter().any(|p| p.path == dir))
+			})
+			.ok_or(format!("No window found for directory '{dir}'"))?;
 
-	tmux::send_keys(&pane.id, "r")?;
+		// -- Find aip pane in this window
+		let aip_pane = window
+			.panes
+			.iter()
+			.find(|p| p.active && p.command == "aip")
+			.or_else(|| window.panes.iter().find(|p| p.command == "aip"))
+			.ok_or(format!(
+				"No pane running 'aip' found in the active window for '{dir}'"
+			))?;
+
+		aip_pane.id.clone()
+	};
+
+	tmux::send_keys(&pane_id, "r")?;
 
 	Ok(())
 }
