@@ -7,11 +7,16 @@ mod support;
 
 use derive_aliases::*;
 pub use error::{Error, Result};
+use std::process;
 
 // endregion: --- Modules
 
-fn main() -> Result<()> {
-	cli::execute()?;
-
-	Ok(())
+fn main() {
+	match cli::execute() {
+		Ok(_) => (),
+		Err(err) => {
+			eprintln!("{err}");
+			process::exit(1);
+		}
+	}
 }

@@ -24,7 +24,7 @@ pub struct TmuxRunAipArgs {
 
 	/// Filter by pane name (title)
 	#[arg(long)]
-	pub pane_name: Option<String>,
+	pub pane: Option<String>,
 }
 
 #[derive(Args, Debug)]
