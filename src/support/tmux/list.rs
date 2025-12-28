@@ -1,6 +1,7 @@
 use crate::Result;
 use crate::support::proc::run_proc;
 use crate::support::tmux::types::*;
+use simple_fs::SPath;
 
 const TMUX_LIST_FORMAT: &str = "#{?session_attached,ATTACHED,DETACHED} #S:#I.#P #{window_name} [#{pane_title}] #{pane_current_path} #{pane_current_command} #{session_id} #{window_id} #{pane_id}";
 
@@ -64,7 +65,9 @@ pub fn list_sessions() -> Result<TmuxSessions> {
 	Ok(TmuxSessions(sessions))
 }
 
-pub fn list_panes(folder: Option<&str>, pane_name: Option<&str>) -> Result<Vec<TmuxPane>> {
+pub fn list_panes(folder: Option<impl AsRef<SPath>>, pane_name: Option<&str>) -> Result<Vec<TmuxPane>> {
+	let folder = folder.as_ref().map(|f| f.as_ref());
+
 	let output = match run_proc("tmux", &["list-panes", "-a", "-F", TMUX_LIST_FORMAT]) {
 		Ok(out) => out,
 		Err(e) => {
@@ -80,7 +83,7 @@ pub fn list_panes(folder: Option<&str>, pane_name: Option<&str>) -> Result<Vec<T
 
 	for line in output.lines() {
 		if let Some(parts) = parse_line(line) {
-			let folder_match = folder.map(|f| parts.path == f).unwrap_or(true);
+			let folder_match = folder.map(|f| &parts.path == f).unwrap_or(true);
 			let title_match = pane_name.map(|name| parts.p_title == name).unwrap_or(true);
 
 			if folder_match && title_match {
@@ -100,7 +103,7 @@ pub fn list_panes(folder: Option<&str>, pane_name: Option<&str>) -> Result<Vec<T
 	Ok(panes)
 }
 
-pub fn find_first_pane(folder: Option<&str>, pane_name: Option<&str>) -> Result<Option<TmuxPane>> {
+pub fn find_first_pane(folder: Option<impl AsRef<SPath>>, pane_name: Option<&str>) -> Result<Option<TmuxPane>> {
 	let panes = list_panes(folder, pane_name)?;
 	Ok(panes.into_iter().next())
 }
@@ -117,7 +120,7 @@ struct LineParts {
 	p_idx: usize,
 	p_id: PaneId,
 	p_title: String,
-	path: String,
+	path: SPath,
 	cmd: String,
 }
 
@@ -159,7 +162,7 @@ fn parse_line(line: &str) -> Option<LineParts> {
 		p_idx,
 		p_id: PaneId::from(std::sync::Arc::from(p_id_str)),
 		p_title,
-		path: path.to_string(),
+		path: SPath::new(path),
 		cmd: cmd.to_string(),
 	})
 }

@@ -2,6 +2,7 @@ use crate::Result;
 use crate::cli::cmd::{CliCmd, CliSubCmd, CreateGitIgnoreArgs, TmuxRunAipArgs};
 use crate::support::tmux;
 use clap::Parser as _;
+use simple_fs::SPath;
 
 pub fn execute() -> Result<()> {
 	let cli_cmd = CliCmd::parse();
@@ -17,10 +18,11 @@ pub fn execute() -> Result<()> {
 // region:    --- Exec Handlers
 
 fn exec_tmux_run_aip(args: TmuxRunAipArgs) -> Result<()> {
-	let pane_name = args.dir.as_deref().ok_or("tmux_run_aip must have a --pane")?;
-	let dir = args.dir.as_deref().ok_or("tmux_run_aip must have a --dir")?;
+	let pane_name = args.pane.as_deref().ok_or("tmux_run_aip must have a --pane")?;
+	let dir_str = args.dir.as_deref().ok_or("tmux_run_aip must have a --dir")?;
+	let dir = SPath::new(dir_str);
 
-	let pane = tmux::find_first_pane(Some(dir), Some(pane_name))?;
+	let pane = tmux::find_first_pane(Some(&dir), Some(pane_name))?;
 
 	let pane = pane.ok_or(format!("no pane '{pane_name}' found running at '{dir}'"))?;
 
@@ -30,7 +32,8 @@ fn exec_tmux_run_aip(args: TmuxRunAipArgs) -> Result<()> {
 }
 
 fn exec_create_git_ignore(args: CreateGitIgnoreArgs) -> Result<()> {
-	println!("create-git-ignore: {path}", path = args.path);
+	let path = SPath::new(args.path);
+	println!("create-git-ignore: {path}");
 
 	Ok(())
 }

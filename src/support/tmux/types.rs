@@ -1,5 +1,6 @@
 use macro_rules_attribute as mra;
 use crate::Id;
+use simple_fs::SPath;
 use std::sync::Arc;
 
 // region:    --- Data Structures
@@ -20,7 +21,7 @@ pub struct TmuxPane {
 	pub window_id: WindowId,
 	pub index: usize,
 	pub title: String,
-	pub path: String,
+	pub path: SPath,
 	pub command: String,
 }
 
