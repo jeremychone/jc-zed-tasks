@@ -14,6 +14,9 @@ pub enum CliSubCmd {
 
 	/// Create a .gitignore file at the specified path
 	CreateGitIgnore(CreateGitIgnoreArgs),
+
+	/// Toggle AI in Zed settings (~/.config/zed/settings.json)
+	ZedToggleAi,
 }
 
 #[derive(Args, Debug)]

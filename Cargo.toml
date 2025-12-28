@@ -11,7 +11,8 @@ unused = { level = "allow", priority = -1 } # For exploratory dev.
 # -- CLI
 clap = { version = "4", features = ["derive"] }
 # -- File
-simple-fs = "0.9.3"
+simple-fs = "0.9.2"
 # -- Others
 derive_more = { version = "2", features = ["from", "display", "deref"] }
 macro_rules_attribute = "0.2"
+lazy-regex = "3"

@@ -9,6 +9,8 @@ pub enum Error {
 
 	// -- Externals
 	#[from]
+	SimpleFs(simple_fs::Error),
+	#[from]
 	Io(std::io::Error),
 }
 

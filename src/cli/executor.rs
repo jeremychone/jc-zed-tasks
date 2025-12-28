@@ -1,8 +1,9 @@
 use crate::Result;
 use crate::cli::cmd::{CliCmd, CliSubCmd, CreateGitIgnoreArgs, TmuxRunAipArgs};
-use crate::support::tmux;
+use crate::support::{jsons, tmux};
 use clap::Parser as _;
-use simple_fs::SPath;
+use simple_fs::{SPath, read_to_string};
+use std::{env, fs};
 
 pub fn execute() -> Result<()> {
 	let cli_cmd = CliCmd::parse();
@@ -10,6 +11,7 @@ pub fn execute() -> Result<()> {
 	match cli_cmd.command {
 		CliSubCmd::TmuxRunAip(args) => exec_tmux_run_aip(args)?,
 		CliSubCmd::CreateGitIgnore(args) => exec_create_git_ignore(args)?,
+		CliSubCmd::ZedToggleAi => exec_zed_toggle_ai()?,
 	}
 
 	Ok(())
@@ -19,6 +21,7 @@ pub fn execute() -> Result<()> {
 
 fn exec_tmux_run_aip(args: TmuxRunAipArgs) -> Result<()> {
 	let pane_name = args.pane.as_deref().ok_or("tmux_run_aip must have a --pane")?;
+
 	let dir_str = args.dir.as_deref().ok_or("tmux_run_aip must have a --dir")?;
 	let dir = SPath::new(dir_str);
 
@@ -34,6 +37,26 @@ fn exec_tmux_run_aip(args: TmuxRunAipArgs) -> Result<()> {
 fn exec_create_git_ignore(args: CreateGitIgnoreArgs) -> Result<()> {
 	let path = SPath::new(args.path);
 	println!("create-git-ignore: {path}");
+
+	Ok(())
+}
+
+fn exec_zed_toggle_ai() -> Result<()> {
+	let home = env::var("HOME").map_err(|_| "HOME environment variable not set")?;
+	let settings_path = SPath::new(home).join(".config/zed/settings.json");
+
+	if !settings_path.exists() {
+		return Err(crate::Error::custom(format!(
+			"Zed settings file not found at: {settings_path}"
+		)));
+	}
+
+	let content = simple_fs::read_to_string(&settings_path)?;
+	let new_content = jsons::toggle_bool_text_mode(&content, &["disable_ai"])?;
+
+	fs::write(settings_path.std_path(), new_content)?;
+
+	println!("Zed AI toggled.");
 
 	Ok(())
 }
