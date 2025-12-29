@@ -75,14 +75,17 @@ fn exec_create_git_ignore(args: CreateGitIgnoreArgs) -> Result<()> {
 fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 	let cwd = SPath::new(args.cwd);
 
-	if crate::support::proc::is_proc_running("alacritty") {
-		crate::support::proc::run_proc(
-			ALACRITTY_BIN,
-			&["msg", "create-window", "--working-directory", cwd.as_str()],
-		)?;
+	let mut proc_args: Vec<&str> = if crate::support::proc::is_proc_running("alacritty") {
+		vec!["msg", "create-window", "--working-directory", cwd.as_str()]
 	} else {
-		crate::support::proc::run_proc(ALACRITTY_BIN, &["--working-directory", cwd.as_str()])?;
+		vec!["--working-directory", cwd.as_str()]
+	};
+
+	if args.with_tmux {
+		proc_args.extend(["-e", "tmux", "new-session"]);
 	}
+
+	crate::support::proc::run_proc(ALACRITTY_BIN, &proc_args)?;
 
 	Ok(())
 }

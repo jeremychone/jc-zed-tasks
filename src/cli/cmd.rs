@@ -44,4 +44,8 @@ pub struct NewDevTermArgs {
 	/// Working directory for the new terminal
 	#[arg(long)]
 	pub cwd: String,
+
+	/// Start tmux in the new terminal
+	#[arg(long)]
+	pub with_tmux: bool,
 }
