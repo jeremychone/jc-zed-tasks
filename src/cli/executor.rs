@@ -1,5 +1,5 @@
 use crate::Result;
-use crate::cli::cmd::{CliCmd, CliSubCmd, CreateGitIgnoreArgs, TmuxRunAipArgs};
+use crate::cli::cmd::{CliCmd, CliSubCmd, CreateGitIgnoreArgs, NewDevTermArgs, TmuxRunAipArgs};
 use crate::support::{jsons, tmux};
 use clap::Parser as _;
 use simple_fs::{SPath, read_to_string};
@@ -12,10 +12,13 @@ pub fn execute() -> Result<()> {
 		CliSubCmd::TmuxRunAip(args) => exec_tmux_run_aip(args)?,
 		CliSubCmd::CreateGitIgnore(args) => exec_create_git_ignore(args)?,
 		CliSubCmd::ZedToggleAi => exec_zed_toggle_ai()?,
+		CliSubCmd::NewDevTerm(args) => exec_new_dev_term(args)?,
 	}
 
 	Ok(())
 }
+
+const ALACRITTY_BIN: &str = "/Applications/Alacritty.app/Contents/MacOS/alacritty";
 
 // region:    --- Exec Handlers
 
@@ -52,9 +55,7 @@ fn exec_tmux_run_aip(args: TmuxRunAipArgs) -> Result<()> {
 			.iter()
 			.find(|p| p.active && p.command == "aip")
 			.or_else(|| window.panes.iter().find(|p| p.command == "aip"))
-			.ok_or(format!(
-				"No pane running 'aip' found in the active window for '{dir}'"
-			))?;
+			.ok_or(format!("No pane running 'aip' found in the active window for '{dir}'"))?;
 
 		aip_pane.id.clone()
 	};
@@ -67,6 +68,21 @@ fn exec_tmux_run_aip(args: TmuxRunAipArgs) -> Result<()> {
 fn exec_create_git_ignore(args: CreateGitIgnoreArgs) -> Result<()> {
 	let path = SPath::new(args.path);
 	println!("create-git-ignore: {path}");
+
+	Ok(())
+}
+
+fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
+	let cwd = SPath::new(args.cwd);
+
+	if crate::support::proc::is_proc_running("alacritty") {
+		crate::support::proc::run_proc(
+			ALACRITTY_BIN,
+			&["msg", "create-window", "--working-directory", cwd.as_str()],
+		)?;
+	} else {
+		crate::support::proc::run_proc(ALACRITTY_BIN, &["--working-directory", cwd.as_str()])?;
+	}
 
 	Ok(())
 }

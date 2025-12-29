@@ -17,6 +17,9 @@ pub enum CliSubCmd {
 
 	/// Toggle AI in Zed settings (~/.config/zed/settings.json)
 	ZedToggleAi,
+
+	/// Open a new Alacritty development terminal
+	NewDevTerm(NewDevTermArgs),
 }
 
 #[derive(Args, Debug)]
@@ -34,4 +37,11 @@ pub struct TmuxRunAipArgs {
 pub struct CreateGitIgnoreArgs {
 	/// The path where the .gitignore should be created
 	pub path: String,
+}
+
+#[derive(Args, Debug)]
+pub struct NewDevTermArgs {
+	/// Working directory for the new terminal
+	#[arg(long)]
+	pub cwd: String,
 }

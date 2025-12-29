@@ -13,3 +13,12 @@ pub fn run_proc(cmd: &str, args: &[&str]) -> Result<String> {
 
 	Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
+
+pub fn is_proc_running(name: &str) -> bool {
+	Command::new("pgrep")
+		.arg("-x")
+		.arg(name)
+		.output()
+		.map(|o| o.status.success())
+		.unwrap_or(false)
+}
