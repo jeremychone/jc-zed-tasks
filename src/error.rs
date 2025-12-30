@@ -12,6 +12,8 @@ pub enum Error {
 	SimpleFs(simple_fs::Error),
 	#[from]
 	Io(std::io::Error),
+	#[from]
+	Daemonize(daemonize::Error),
 }
 
 // region:    --- Custom
