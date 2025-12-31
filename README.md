@@ -14,8 +14,8 @@ zed-tasks tmux-run-aip --dir /Users/jeremychone/_jeremy/_rust/utils/rust-zed-tas
 zed-tasks create-git-ignore .
 
 # -- new-dev-term: Opens a new Alacritty terminal in the specified directory.
-# Usage: zed-tasks new-dev-term --cwd <path>
-zed-tasks new-dev-term --cwd .
+# Usage: zed-tasks new-dev-term --cwd <path> [--auto-pos <below|bottom>]
+zed-tasks new-dev-term --cwd . --auto-pos bottom
 
 ```
 

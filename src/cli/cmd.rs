@@ -1,4 +1,4 @@
-use clap::{Args, Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 
 #[derive(Parser, Debug)]
 #[command(version)]
@@ -48,4 +48,14 @@ pub struct NewDevTermArgs {
 	/// Start tmux in the new terminal
 	#[arg(long)]
 	pub with_tmux: bool,
+
+	/// Auto position the terminal relative to Zed
+	#[arg(long, value_enum)]
+	pub auto_pos: Option<AutoPos>,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy)]
+pub enum AutoPos {
+	Below,
+	Bottom,
 }

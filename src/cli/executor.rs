@@ -1,5 +1,5 @@
 use crate::Result;
-use crate::cli::cmd::{CliCmd, CliSubCmd, CreateGitIgnoreArgs, NewDevTermArgs, TmuxRunAipArgs};
+use crate::cli::cmd::{AutoPos, CliCmd, CliSubCmd, CreateGitIgnoreArgs, NewDevTermArgs, TmuxRunAipArgs};
 use crate::support::mac::{self, APP_NAME_ALACRITTY, APP_NAME_ZED, WindowBounds};
 use crate::support::{jsons, tmux};
 use clap::Parser as _;
@@ -92,15 +92,19 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 		proc_args.extend(["-e", "tmux", "new-session"]);
 	}
 
-	// -- Get Zed bounds (before launching Alacritty)
-	let zed_bounds = mac::get_front_window_bounds(APP_NAME_ZED);
-	if let Err(ref err) = zed_bounds {
-		eprintln!("Warning: Could not get Zed bounds: {err}");
-	}
-	let zed_bounds = zed_bounds.ok();
+	// -- Get Zed bounds (only if auto-pos is requested)
+	let bound_and_pos = if let Some(auto_pos) = args.auto_pos {
+		let bounds = mac::get_front_window_bounds(APP_NAME_ZED);
+		if let Err(ref err) = bounds {
+			eprintln!("Warning: Could not get Zed bounds: {err}");
+		}
+		bounds.map(|zb| (zb, auto_pos)).ok()
+	} else {
+		None
+	};
 
 	// -- Detach and run
-	if let Some(zb) = zed_bounds {
+	if let Some((zb, auto_pos)) = bound_and_pos {
 		use daemonize::Daemonize;
 		Daemonize::new().start()?;
 
@@ -113,13 +117,18 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 		// Get Alacritty bounds to calculate relative position
 		let ab = mac::get_front_window_bounds(APP_NAME_ALACRITTY)?;
 
-		// Calculate relative position (centered horizontally, below Zed)
+		// Calculate relative position (centered horizontally)
 		let ax = zb.x + (zb.width - ab.width) / 2;
-		let ay = zb.y + zb.height + 4;
+		let ay = match auto_pos {
+			AutoPos::Below => zb.y + zb.height + 4,
+			AutoPos::Bottom => zb.y + zb.height - ab.height,
+		};
 
 		mac::set_front_window_xy(APP_NAME_ALACRITTY, ax, ay)?;
 	} else {
-		println!("Zed bounds not found, running detached.");
+		if args.auto_pos.is_some() {
+			println!("Zed bounds not found, running detached.");
+		}
 		crate::support::proc::run_proc_detach(ALACRITTY_BIN, &proc_args)?;
 	}
 
