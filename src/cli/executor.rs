@@ -1,7 +1,7 @@
 use crate::Result;
 use crate::cli::cmd::{AutoPos, CliCmd, CliSubCmd, CreateGitIgnoreArgs, NewDevTermArgs, TmuxRunAipArgs};
 use crate::support::mac::{self, APP_NAME_ALACRITTY, APP_NAME_ZED, WindowBounds};
-use crate::support::{jsons, tmux};
+use crate::support::{jsons, os, proc, tmux};
 use clap::Parser as _;
 use simple_fs::{SPath, read_to_string};
 use std::time::Duration;
@@ -99,18 +99,23 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 
 	// -- Get Zed bounds (only if pos is requested)
 	let bound_and_pos = if let Some(auto_pos) = args.pos {
-		let bounds = mac::get_front_window_bounds(APP_NAME_ZED);
-		if let Err(ref err) = bounds {
-			eprintln!("Warning: Could not get Zed bounds: {err}");
+		if os::is_mac() {
+			let bounds = mac::get_front_window_bounds(APP_NAME_ZED);
+			if let Err(ref err) = bounds {
+				eprintln!("Warning: Could not get Zed bounds: {err}");
+			}
+			bounds.map(|zb| (zb, auto_pos)).ok()
+		} else {
+			eprintln!("Warning: Window positioning is only supported on macOS.");
+			None
 		}
-		bounds.map(|zb| (zb, auto_pos)).ok()
 	} else {
 		None
 	};
 
 	// -- Detach and run
 	if let Some((zb, auto_pos)) = bound_and_pos {
-		crate::support::proc::run_proc_daemon(move || {
+		proc::run_proc_daemon(move || {
 			// Launch Alacritty (use spawn to not block)
 			process::Command::new(ALACRITTY_BIN).args(&proc_args).spawn()?;
 
