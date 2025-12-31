@@ -1,6 +1,7 @@
 // region:    --- Modules
 
 pub mod jsons;
+pub mod mac;
 pub mod proc;
 pub mod tmux;
 
