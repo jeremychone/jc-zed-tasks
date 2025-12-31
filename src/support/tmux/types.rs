@@ -1,5 +1,5 @@
-use macro_rules_attribute as mra;
 use crate::Id;
+use macro_rules_attribute as mra;
 use simple_fs::SPath;
 use std::sync::Arc;
 

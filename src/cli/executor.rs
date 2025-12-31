@@ -4,9 +4,8 @@ use crate::support::mac::{self, APP_NAME_ALACRITTY, APP_NAME_ZED, WindowBounds};
 use crate::support::{jsons, tmux};
 use clap::Parser as _;
 use simple_fs::{SPath, read_to_string};
-use std::thread;
 use std::time::Duration;
-use std::{env, fs, process};
+use std::{env, fs, process, thread};
 
 pub fn execute() -> Result<()> {
 	let cli_cmd = CliCmd::parse();
@@ -102,21 +101,6 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 
 	// -- Detach and run
 	if let Some(zb) = zed_bounds {
-		println!("Zed bounds: {zb:?}");
-
-		// Position it
-		let aw = (zb.width - 100).max(800).min(zb.width);
-		let ah = 450;
-		let ax = zb.x + (zb.width - aw) / 2;
-		let ay = zb.y + zb.height + 4;
-		let target_bounds = WindowBounds {
-			x: ax,
-			y: ay,
-			width: aw,
-			height: ah,
-		};
-		println!("Target Alacritty bounds: {target_bounds:?}");
-
 		use daemonize::Daemonize;
 		Daemonize::new().start()?;
 
@@ -124,9 +108,16 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 		process::Command::new(ALACRITTY_BIN).args(&proc_args).spawn()?;
 
 		// Wait for window to be created/focused
-		thread::sleep(Duration::from_millis(500));
+		thread::sleep(Duration::from_millis(10));
 
-		mac::set_front_window_bounds(APP_NAME_ALACRITTY, target_bounds)?;
+		// Get Alacritty bounds to calculate relative position
+		let ab = mac::get_front_window_bounds(APP_NAME_ALACRITTY)?;
+
+		// Calculate relative position (centered horizontally, below Zed)
+		let ax = zb.x + (zb.width - ab.width) / 2;
+		let ay = zb.y + zb.height + 4;
+
+		mac::set_front_window_xy(APP_NAME_ALACRITTY, ax, ay)?;
 	} else {
 		println!("Zed bounds not found, running detached.");
 		crate::support::proc::run_proc_detach(ALACRITTY_BIN, &proc_args)?;
