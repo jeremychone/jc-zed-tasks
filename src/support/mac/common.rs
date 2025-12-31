@@ -14,6 +14,8 @@ pub struct WindowBounds {
 
 /// Get the bounds of the frontmost (active) window for the given application.
 pub fn get_front_window_bounds(app_name: &str) -> Result<WindowBounds> {
+	let _win = get_front_window(app_name)?.ok_or_else(|| format!("No window found for application: {app_name}"))?;
+
 	let script = format!(
 		r#"tell application "{app_name}"
 			get bounds of window 1
@@ -25,9 +27,7 @@ pub fn get_front_window_bounds(app_name: &str) -> Result<WindowBounds> {
 	let parts: Vec<i32> = output.split(',').filter_map(|s| s.trim().parse().ok()).collect();
 
 	if parts.len() != 4 {
-		return Err(crate::Error::custom(format!(
-			"Unexpected bounds format from AppleScript: {output}"
-		)));
+		return Err(format!("Unexpected bounds format from AppleScript: {output}").into());
 	}
 
 	Ok(WindowBounds {
@@ -40,6 +40,8 @@ pub fn get_front_window_bounds(app_name: &str) -> Result<WindowBounds> {
 
 /// Set the bounds of the frontmost (active) window for the given application.
 pub fn set_front_window_bounds(app_name: &str, bounds: WindowBounds) -> Result<()> {
+	let _win = get_front_window(app_name)?.ok_or_else(|| format!("No window found for application: {app_name}"))?;
+
 	let x2 = bounds.x + bounds.width;
 	let y2 = bounds.y + bounds.height;
 	let script = format!(
@@ -92,6 +94,12 @@ pub fn get_app_windows(app_name: &str) -> Result<Vec<AppWindow>> {
 	Ok(windows)
 }
 
+/// Get the frontmost (active) window for the given application.
+pub fn get_front_window(app_name: &str) -> Result<Option<AppWindow>> {
+	let windows = get_app_windows(app_name)?;
+	Ok(windows.into_iter().next())
+}
+
 /// Get the names of all currently running application processes.
 /// Filters for applications that are not background-only to help identify valid UI targets.
 pub fn get_all_app_names() -> Result<Vec<String>> {
@@ -115,6 +123,32 @@ mod tests {
 	type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>;
 
 	use super::*;
+
+	#[test]
+	fn test_support_mac_common_get_front_window_zed() -> Result<()> {
+		// -- Exec
+		let res = get_front_window(APP_NAME_ZED);
+
+		// -- Check
+		match res {
+			Ok(Some(window)) => {
+				println!("Zed front window: {window:?}");
+			}
+			Ok(None) => {
+				println!("No Zed window found.");
+			}
+			Err(err) => {
+				let msg = err.to_string();
+				if msg.contains("Application isn") || msg.contains("not found") {
+					println!("Skipping check because Zed is not running: {msg}");
+				} else {
+					return Err(err.into());
+				}
+			}
+		}
+
+		Ok(())
+	}
 
 	#[test]
 	fn test_support_mac_common_get_app_windows_zed() -> Result<()> {
@@ -161,7 +195,7 @@ mod tests {
 	#[test]
 	fn test_support_mac_common_get_front_window_bounds_zed() -> Result<()> {
 		// -- Exec
-		let res = get_front_window_bounds("zed");
+		let res = get_front_window_bounds(APP_NAME_ZED);
 
 		// -- Check
 		match res {
