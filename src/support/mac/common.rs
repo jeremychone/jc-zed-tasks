@@ -1,16 +1,9 @@
 use crate::Result;
 use crate::support::mac::support::run_applescript;
+use crate::support::mac::types::*;
 use std::sync::Arc;
 
 pub const APP_NAME_ZED: &str = "Zed";
-
-#[derive(Debug, Clone, Copy)]
-pub struct WindowBounds {
-	pub x: i32,
-	pub y: i32,
-	pub width: i32,
-	pub height: i32,
-}
 
 /// Get the bounds of the frontmost (active) window for the given application.
 pub fn get_front_window_bounds(app_name: &str) -> Result<WindowBounds> {
@@ -56,22 +49,6 @@ pub fn set_front_window_bounds(app_name: &str, bounds: WindowBounds) -> Result<(
 	run_applescript(&script)?;
 
 	Ok(())
-}
-
-pub struct AppWindow {
-	pub app: Arc<str>,    // the application name
-	pub win_idx: i32,     // Index of the apple script tell process
-	pub win_name: String, // the windows name
-}
-
-impl std::fmt::Debug for AppWindow {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		f.debug_struct("AppWindow")
-			.field("app", &self.app)
-			.field("win_idx", &self.win_idx)
-			.field("win_name", &self.win_name)
-			.finish()
-	}
 }
 
 /// Get all window information for a given application using System Events.
