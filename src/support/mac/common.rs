@@ -157,6 +157,20 @@ mod tests {
 	}
 
 	#[test]
+	fn test_support_mac_common_get_app_windows_alacritty() -> Result<()> {
+		// -- Exec
+		let windows = get_app_windows(APP_NAME_ALACRITTY)?;
+
+		// -- Check
+		if windows.is_empty() {
+			return Err("No Alacritty windows found".into());
+		}
+		println!("Alacritty windows: {windows:?}");
+
+		Ok(())
+	}
+
+	#[test]
 	fn test_support_mac_common_get_all_app_names_simple() -> Result<()> {
 		// -- Exec
 		let names = get_all_app_names()?;

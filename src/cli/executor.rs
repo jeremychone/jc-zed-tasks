@@ -82,14 +82,19 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 		cwd
 	};
 
-	let mut proc_args: Vec<&str> = if crate::support::proc::is_proc_running("alacritty") {
-		vec!["msg", "create-window", "--working-directory", cwd.as_str()]
+	let mut proc_args: Vec<String> = if crate::support::proc::is_proc_running("alacritty") {
+		vec![
+			"msg".to_string(),
+			"create-window".to_string(),
+			"--working-directory".to_string(),
+			cwd.to_string(),
+		]
 	} else {
-		vec!["--working-directory", cwd.as_str()]
+		vec!["--working-directory".to_string(), cwd.to_string()]
 	};
 
 	if args.with_tmux {
-		proc_args.extend(["-e", "tmux", "new-session"]);
+		proc_args.extend(["-e".to_string(), "tmux".to_string(), "new-session".to_string()]);
 	}
 
 	// -- Get Zed bounds (only if auto-pos is requested)
@@ -105,30 +110,32 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 
 	// -- Detach and run
 	if let Some((zb, auto_pos)) = bound_and_pos {
-		use daemonize::Daemonize;
-		Daemonize::new().start()?;
+		crate::support::proc::run_proc_daemon(move || {
+			// Launch Alacritty (use spawn to not block)
+			process::Command::new(ALACRITTY_BIN).args(&proc_args).spawn()?;
 
-		// Launch Alacritty (use spawn to not block)
-		process::Command::new(ALACRITTY_BIN).args(&proc_args).spawn()?;
+			// Wait for window to be created/focused
+			thread::sleep(Duration::from_millis(10));
 
-		// Wait for window to be created/focused
-		thread::sleep(Duration::from_millis(10));
+			// Get Alacritty bounds to calculate relative position
+			let ab = mac::get_front_window_bounds(APP_NAME_ALACRITTY)?;
 
-		// Get Alacritty bounds to calculate relative position
-		let ab = mac::get_front_window_bounds(APP_NAME_ALACRITTY)?;
+			// Calculate relative position (centered horizontally)
+			let ax = zb.x + (zb.width - ab.width) / 2;
+			let ay = match auto_pos {
+				AutoPos::Below => zb.y + zb.height + 4,
+				AutoPos::Bottom => zb.y + zb.height - ab.height,
+			};
 
-		// Calculate relative position (centered horizontally)
-		let ax = zb.x + (zb.width - ab.width) / 2;
-		let ay = match auto_pos {
-			AutoPos::Below => zb.y + zb.height + 4,
-			AutoPos::Bottom => zb.y + zb.height - ab.height,
-		};
+			mac::set_front_window_xy(APP_NAME_ALACRITTY, ax, ay)?;
 
-		mac::set_front_window_xy(APP_NAME_ALACRITTY, ax, ay)?;
+			Ok(())
+		})?;
 	} else {
 		if args.auto_pos.is_some() {
 			println!("Zed bounds not found, running detached.");
 		}
+		let proc_args: Vec<&str> = proc_args.iter().map(|s| s.as_str()).collect();
 		crate::support::proc::run_proc_detach(ALACRITTY_BIN, &proc_args)?;
 	}
 

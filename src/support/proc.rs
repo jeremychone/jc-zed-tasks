@@ -22,8 +22,25 @@ pub fn is_proc_running(name: &str) -> bool {
 }
 
 pub fn run_proc_detach(cmd: &str, args: &[&str]) -> Result<()> {
-	use daemonize::Daemonize;
 	use std::os::unix::process::CommandExt;
+
+	run_proc_daemon(|| {
+		let mut command = Command::new(cmd);
+		command.args(args);
+
+		// exec() replaces the current process image with the new command.
+		// If successful, this code is never reached.
+		let err = command.exec();
+
+		Err(crate::Error::custom(format!("Failed to exec '{cmd}': {err}")))
+	})
+}
+
+pub fn run_proc_daemon<F>(f: F) -> Result<()>
+where
+	F: FnOnce() -> Result<()>,
+{
+	use daemonize::Daemonize;
 
 	let daemonize = Daemonize::new();
 
@@ -32,12 +49,5 @@ pub fn run_proc_detach(cmd: &str, args: &[&str]) -> Result<()> {
 	// The child process continues execution below.
 	daemonize.start()?;
 
-	let mut command = Command::new(cmd);
-	command.args(args);
-
-	// exec() replaces the current process image with the new command.
-	// If successful, this code is never reached.
-	let err = command.exec();
-
-	Err(crate::Error::custom(format!("Failed to exec '{cmd}': {err}")))
+	f()
 }
