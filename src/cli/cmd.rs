@@ -49,9 +49,9 @@ pub struct NewDevTermArgs {
 	#[arg(long)]
 	pub with_tmux: bool,
 
-	/// Auto position the terminal relative to Zed
+	/// Position the terminal relative to Zed
 	#[arg(long, value_enum)]
-	pub auto_pos: Option<AutoPos>,
+	pub pos: Option<AutoPos>,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy)]

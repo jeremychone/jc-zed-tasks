@@ -97,8 +97,8 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 		proc_args.extend(["-e".to_string(), "tmux".to_string(), "new-session".to_string()]);
 	}
 
-	// -- Get Zed bounds (only if auto-pos is requested)
-	let bound_and_pos = if let Some(auto_pos) = args.auto_pos {
+	// -- Get Zed bounds (only if pos is requested)
+	let bound_and_pos = if let Some(auto_pos) = args.pos {
 		let bounds = mac::get_front_window_bounds(APP_NAME_ZED);
 		if let Err(ref err) = bounds {
 			eprintln!("Warning: Could not get Zed bounds: {err}");
@@ -132,7 +132,7 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 			Ok(())
 		})?;
 	} else {
-		if args.auto_pos.is_some() {
+		if args.pos.is_some() {
 			println!("Zed bounds not found, running detached.");
 		}
 		let proc_args: Vec<&str> = proc_args.iter().map(|s| s.as_str()).collect();

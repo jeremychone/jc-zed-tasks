@@ -39,10 +39,10 @@ Open a new Alacritty development terminal.
 
 - `--cwd <PATH>`: Working directory for the new terminal.
 - `--with-tmux`: Start tmux in the new terminal.
-- `--auto-pos <below|bottom>`: Auto position the terminal relative to Zed.
+- `--pos <below|bottom>`: Position the terminal relative to Zed.
 
 ```sh
-zed-tasks new-dev-term --cwd . --auto-pos bottom
+zed-tasks new-dev-term --cwd . --pos bottom
 ```
 
 ## Development
