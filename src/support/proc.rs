@@ -21,18 +21,20 @@ pub fn is_proc_running(name: &str) -> bool {
 		.unwrap_or(false)
 }
 
-pub fn run_proc_detach(cmd: &str, args: &[&str]) -> Result<()> {
+pub fn run_proc_detach_spawn(cmd: &str, args: &[&str]) -> Result<()> {
 	use std::os::unix::process::CommandExt;
-
 	run_proc_daemon(|| {
-		let mut command = Command::new(cmd);
-		command.args(args);
+		// spawn and do not wait
+		let err = Command::new(cmd).args(args).spawn();
 
-		// exec() replaces the current process image with the new command.
-		// If successful, this code is never reached.
-		let err = command.exec();
-
-		Err(crate::Error::custom(format!("Failed to exec '{cmd}': {err}")))
+		match err {
+			Ok(_) => Ok(()),
+			Err(err) => {
+				let msg = format!("Failed to spawn '{cmd}'. Cause: {err}");
+				println!("{msg}");
+				return Err(msg.into());
+			}
+		}
 	})
 }
 
