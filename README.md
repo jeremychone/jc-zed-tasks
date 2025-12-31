@@ -4,19 +4,45 @@ A collection of CLI tools for AIP development workflows, including tmux session 
 
 ## Usage
 
+### `tmux-run-aip`
+
+Run AIP in a tmux session (sends the 'r' key to the target pane).
+
+- `--dir <PATH>`: Filter by pane directory (required).
+- `--pane <NAME>`: Filter by pane name/title (optional).
+
 ```sh
-# -- tmux-run-aip: Lists all current tmux sessions, windows, and panes.
-# Run the tmux session lister
-zed-tasks tmux-run-aip --dir /Users/jeremychone/_jeremy/_rust/utils/rust-zed-tasks --pane-name pro@coder
+zed-tasks tmux-run-aip --dir . --pane pro@coder
+```
 
-# -- create-git-ignore: Generates a .gitignore file at the specified target path.
-# Usage: zed-tasks create-git-ignore <path>
+### `create-git-ignore`
+
+Create a `.gitignore` file at the specified path.
+
+- `<PATH>`: Target directory path.
+
+```sh
 zed-tasks create-git-ignore .
+```
 
-# -- new-dev-term: Opens a new Alacritty terminal in the specified directory.
-# Usage: zed-tasks new-dev-term --cwd <path> [--auto-pos <below|bottom>]
+### `zed-toggle-ai`
+
+Toggle AI features in Zed settings (`~/.config/zed/settings.json`).
+
+```sh
+zed-tasks zed-toggle-ai
+```
+
+### `new-dev-term`
+
+Open a new Alacritty development terminal.
+
+- `--cwd <PATH>`: Working directory for the new terminal.
+- `--with-tmux`: Start tmux in the new terminal.
+- `--auto-pos <below|bottom>`: Auto position the terminal relative to Zed.
+
+```sh
 zed-tasks new-dev-term --cwd . --auto-pos bottom
-
 ```
 
 ## Development
