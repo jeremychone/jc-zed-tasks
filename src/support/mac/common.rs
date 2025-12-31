@@ -17,13 +17,15 @@ pub fn get_front_window_bounds(app_name: &str) -> Result<WindowBounds> {
 	let _win = get_front_window(app_name)?.ok_or_else(|| format!("No window found for application: {app_name}"))?;
 
 	let script = format!(
-		r#"tell application "{app_name}"
-			get bounds of window 1
+		r#"tell application "System Events"
+			tell process "{app_name}"
+				get {{position, size}} of window 1
+			end tell
 		end tell"#
 	);
 
 	let output = run_applescript(&script)?;
-	// Output format: "x1, y1, x2, y2"
+	// Output format: "x, y, width, height"
 	let parts: Vec<i32> = output.split(',').filter_map(|s| s.trim().parse().ok()).collect();
 
 	if parts.len() != 4 {
@@ -33,8 +35,8 @@ pub fn get_front_window_bounds(app_name: &str) -> Result<WindowBounds> {
 	Ok(WindowBounds {
 		x: parts[0],
 		y: parts[1],
-		width: parts[2] - parts[0],
-		height: parts[3] - parts[1],
+		width: parts[2],
+		height: parts[3],
 	})
 }
 
@@ -74,7 +76,13 @@ impl std::fmt::Debug for AppWindow {
 
 /// Get all window information for a given application using System Events.
 pub fn get_app_windows(app_name: &str) -> Result<Vec<AppWindow>> {
-	let script = format!(r#"tell application "System Events" to tell process "{app_name}" to get name of windows"#);
+	let script = format!(
+		r#"tell application "System Events"
+			tell process "{app_name}"
+				get name of windows
+			end tell
+		end tell"#
+	);
 
 	let output = run_applescript(&script)?;
 	if output.is_empty() {
@@ -103,8 +111,9 @@ pub fn get_front_window(app_name: &str) -> Result<Option<AppWindow>> {
 /// Get the names of all currently running application processes.
 /// Filters for applications that are not background-only to help identify valid UI targets.
 pub fn get_all_app_names() -> Result<Vec<String>> {
-	let script =
-		r#"tell application "System Events" to get name of every application process whose background only is false"#;
+	let script = r#"tell application "System Events"
+		get name of every application process whose background only is false
+	end tell"#;
 
 	let output = run_applescript(script)?;
 	if output.is_empty() {
