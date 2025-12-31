@@ -19,6 +19,8 @@ pub fn get_front_window_bounds(app_name: &str) -> Result<WindowBounds> {
 	);
 
 	let output = run_applescript(&script)?;
+	// println!("DEBUG: AppleScript output for {app_name} bounds: {output}");
+
 	// Output format: "x, y, width, height"
 	let parts: Vec<i32> = output.split(',').filter_map(|s| s.trim().parse().ok()).collect();
 
