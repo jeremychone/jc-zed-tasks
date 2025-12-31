@@ -132,25 +132,10 @@ mod tests {
 	#[test]
 	fn test_support_mac_common_get_front_window_zed() -> Result<()> {
 		// -- Exec
-		let res = get_front_window(APP_NAME_ZED);
+		let window = get_front_window(APP_NAME_ZED)?.ok_or("Zed front window not found")?;
 
 		// -- Check
-		match res {
-			Ok(Some(window)) => {
-				println!("Zed front window: {window:?}");
-			}
-			Ok(None) => {
-				println!("No Zed window found.");
-			}
-			Err(err) => {
-				let msg = err.to_string();
-				if msg.contains("Application isn") || msg.contains("not found") {
-					println!("Skipping check because Zed is not running: {msg}");
-				} else {
-					return Err(err.into());
-				}
-			}
-		}
+		println!("Zed front window: {window:?}");
 
 		Ok(())
 	}
@@ -158,26 +143,13 @@ mod tests {
 	#[test]
 	fn test_support_mac_common_get_app_windows_zed() -> Result<()> {
 		// -- Exec
-		let res = get_app_windows(APP_NAME_ZED);
+		let windows = get_app_windows(APP_NAME_ZED)?;
 
 		// -- Check
-		match res {
-			Ok(windows) => {
-				println!("Zed windows: {windows:?}");
-			}
-			Err(err) => {
-				let msg = err.to_string();
-				if msg.contains("Application isn")
-					|| msg.contains("not found")
-					|| msg.contains("invalid connection")
-					|| msg.contains("Can’t get name of windows")
-				{
-					println!("Skipping check because Zed is not accessible or has no windows: {msg}");
-				} else {
-					return Err(err.into());
-				}
-			}
+		if windows.is_empty() {
+			return Err("No Zed windows found".into());
 		}
+		println!("Zed windows: {windows:?}");
 
 		Ok(())
 	}
@@ -200,19 +172,29 @@ mod tests {
 	#[test]
 	fn test_support_mac_common_get_front_window_bounds_zed() -> Result<()> {
 		// -- Exec
-		let res = get_front_window_bounds(APP_NAME_ZED);
+		let bounds = get_front_window_bounds(APP_NAME_ZED)?;
+
+		// -- Check
+		println!("Zed front window bounds: {bounds:?}");
+
+		Ok(())
+	}
+
+	// DISABLED - Should not enable test that mutate window state
+	// #[test]
+	fn test_support_mac_common_set_front_window_xy_alacritty() -> Result<()> {
+		// -- Exec
+		let res = set_front_window_xy(APP_NAME_ALACRITTY, 100, 100);
 
 		// -- Check
 		match res {
-			Ok(bounds) => {
-				println!("Zed front window bounds: {bounds:?}");
-			}
+			Ok(_) => println!("Zed window moved to (100, 100)"),
 			Err(err) => {
 				let msg = err.to_string();
 				if msg.contains("Application isn")
 					|| msg.contains("not found")
 					|| msg.contains("invalid connection")
-					|| msg.contains("Can’t get bounds of window 1")
+					|| msg.contains("Can’t set position of window 1")
 				{
 					println!("Skipping check because Zed is not accessible or has no windows: {msg}");
 				} else {
@@ -223,32 +205,6 @@ mod tests {
 
 		Ok(())
 	}
-
-	// DISABLED - Should not enable test that mutate window state
-	// #[test]
-	// fn test_support_mac_common_set_front_window_xy_alacritty() -> Result<()> {
-	// 	// -- Exec
-	// 	let res = set_front_window_xy(APP_NAME_ALACRITTY, 100, 100);
-
-	// 	// -- Check
-	// 	match res {
-	// 		Ok(_) => println!("Zed window moved to (100, 100)"),
-	// 		Err(err) => {
-	// 			let msg = err.to_string();
-	// 			if msg.contains("Application isn")
-	// 				|| msg.contains("not found")
-	// 				|| msg.contains("invalid connection")
-	// 				|| msg.contains("Can’t set position of window 1")
-	// 			{
-	// 				println!("Skipping check because Zed is not accessible or has no windows: {msg}");
-	// 			} else {
-	// 				return Err(err.into());
-	// 			}
-	// 		}
-	// 	}
-
-	// 	Ok(())
-	// }
 }
 
 // endregion: --- Tests
