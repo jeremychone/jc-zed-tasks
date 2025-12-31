@@ -3,7 +3,8 @@ use crate::support::mac::support::run_applescript;
 use crate::support::mac::types::*;
 use std::sync::Arc;
 
-pub const APP_NAME_ZED: &str = "Zed";
+pub const APP_NAME_ZED: &str = "zed";
+pub const APP_NAME_ALACRITTY: &str = "alacritty";
 
 /// Get the bounds of the frontmost (active) window for the given application.
 pub fn get_front_window_bounds(app_name: &str) -> Result<WindowBounds> {
@@ -44,6 +45,24 @@ pub fn set_front_window_bounds(app_name: &str, bounds: WindowBounds) -> Result<(
 			set bounds of window 1 to {{{}, {}, {}, {}}}
 		end tell"#,
 		bounds.x, bounds.y, x2, y2
+	);
+
+	run_applescript(&script)?;
+
+	Ok(())
+}
+
+/// Set the position (x, y) of the frontmost (active) window for the given application.
+pub fn set_front_window_xy(app_name: &str, x: i32, y: i32) -> Result<()> {
+	let _win = get_front_window(app_name)?.ok_or_else(|| format!("No window found for application: {app_name}"))?;
+
+	let script = format!(
+		r#"tell application "System Events"
+			tell process "{app_name}"
+				set position of window 1 to {{{}, {}}}
+			end tell
+		end tell"#,
+		x, y
 	);
 
 	run_applescript(&script)?;
@@ -204,6 +223,32 @@ mod tests {
 
 		Ok(())
 	}
+
+	// DISABLED - Should not enable test that mutate window state
+	// #[test]
+	// fn test_support_mac_common_set_front_window_xy_alacritty() -> Result<()> {
+	// 	// -- Exec
+	// 	let res = set_front_window_xy(APP_NAME_ALACRITTY, 100, 100);
+
+	// 	// -- Check
+	// 	match res {
+	// 		Ok(_) => println!("Zed window moved to (100, 100)"),
+	// 		Err(err) => {
+	// 			let msg = err.to_string();
+	// 			if msg.contains("Application isn")
+	// 				|| msg.contains("not found")
+	// 				|| msg.contains("invalid connection")
+	// 				|| msg.contains("Can’t set position of window 1")
+	// 			{
+	// 				println!("Skipping check because Zed is not accessible or has no windows: {msg}");
+	// 			} else {
+	// 				return Err(err.into());
+	// 			}
+	// 		}
+	// 	}
+
+	// 	Ok(())
+	// }
 }
 
 // endregion: --- Tests
