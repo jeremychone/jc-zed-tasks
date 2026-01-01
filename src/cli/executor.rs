@@ -1,5 +1,5 @@
 use crate::Result;
-use crate::cli::cmd::{AutoPos, CliCmd, CliSubCmd, CreateGitIgnoreArgs, NewDevTermArgs, TmuxRunAipArgs};
+use crate::cli::cmd::{AutoPos, CliCmd, CliSubCmd, NewDevTermArgs, TmuxRunAipArgs};
 use crate::support::mac::{self, APP_NAME_ALACRITTY, APP_NAME_ZED, WindowBounds};
 use crate::support::{jsons, os, proc, tmux};
 use clap::Parser as _;
@@ -12,7 +12,6 @@ pub fn execute() -> Result<()> {
 
 	match cli_cmd.command {
 		CliSubCmd::TmuxRunAip(args) => exec_tmux_run_aip(args)?,
-		CliSubCmd::CreateGitIgnore(args) => exec_create_git_ignore(args)?,
 		CliSubCmd::ZedToggleAi => exec_zed_toggle_ai()?,
 		CliSubCmd::NewDevTerm(args) => exec_new_dev_term(args)?,
 	}
@@ -63,13 +62,6 @@ fn exec_tmux_run_aip(args: TmuxRunAipArgs) -> Result<()> {
 	};
 
 	tmux::send_keys(&pane_id, "r")?;
-
-	Ok(())
-}
-
-fn exec_create_git_ignore(args: CreateGitIgnoreArgs) -> Result<()> {
-	let path = SPath::new(args.path);
-	println!("create-git-ignore: {path}");
 
 	Ok(())
 }

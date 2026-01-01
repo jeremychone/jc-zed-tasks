@@ -15,16 +15,6 @@ Run AIP in a tmux session (sends the 'r' key to the target pane).
 zed-tasks tmux-run-aip --dir . --pane pro@coder
 ```
 
-### `create-git-ignore`
-
-Create a `.gitignore` file at the specified path.
-
-- `<PATH>`: Target directory path.
-
-```sh
-zed-tasks create-git-ignore .
-```
-
 ### `zed-toggle-ai`
 
 Toggle AI features in Zed settings (`~/.config/zed/settings.json`).

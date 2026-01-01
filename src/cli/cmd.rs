@@ -12,9 +12,6 @@ pub enum CliSubCmd {
 	/// Run AIP in a tmux session
 	TmuxRunAip(TmuxRunAipArgs),
 
-	/// Create a .gitignore file at the specified path
-	CreateGitIgnore(CreateGitIgnoreArgs),
-
 	/// Toggle AI in Zed settings (~/.config/zed/settings.json)
 	ZedToggleAi,
 
@@ -31,12 +28,6 @@ pub struct TmuxRunAipArgs {
 	/// Filter by pane name (title)
 	#[arg(long)]
 	pub pane: Option<String>,
-}
-
-#[derive(Args, Debug)]
-pub struct CreateGitIgnoreArgs {
-	/// The path where the .gitignore should be created
-	pub path: String,
 }
 
 #[derive(Args, Debug)]
