@@ -1,12 +1,12 @@
 # jc-zed-tasks
 
-Here is a rust binary project that consolidate many of my Zed Tasks I am using.
+Here is a rust binary project that consolidate many of my Zed Tasks I am using. 
 
 Feel free to use it as such, or cherry pick what you need, or fork and make it your own.
 
-A collection of CLI tools for AIP development workflows, including tmux session management and project initialization.
+NOTE: It is being developed and tested on a Mac. PRs for Linux are welcome.
 
-Related: 
+Related Repos: 
 - [jc-zed-config](https://github.com/jeremychone/jc-zed-config)
 - [jc-zed-tasks (this one)](https://github.com/jeremychone/jc-zed-tasks)
 
