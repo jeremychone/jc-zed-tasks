@@ -2,6 +2,13 @@
 name = "jc-zed-tasks"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.90"
+license = "MIT OR Apache-2.0"
+description = "rust binary project that consolidate many of my Zed Tasks JC is using"
+categories = ["command-line-utilities"]
+keywords = ["Zed","IDE"]
+homepage = "https://github.com/jeremychone/jc-zed-tasks"
+repository = "https://github.com/jeremychone/jc-zed-tasks"
 
 [lints.rust]
 unsafe_code = "forbid"
