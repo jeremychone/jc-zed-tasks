@@ -6,6 +6,10 @@ Feel free to use it as such, or cherry pick what you need, or fork and make it y
 
 A collection of CLI tools for AIP development workflows, including tmux session management and project initialization.
 
+Related: 
+- [jc-zed-config](https://github.com/jeremychone/jc-zed-config)
+- [jc-zed-tasks (this one)](https://github.com/jeremychone/jc-zed-tasks)
+
 ## Usage
 
 ### `zed-toggle-ai`
@@ -58,3 +62,7 @@ cargo watch -c -x "install --path ."
 # Build the project
 cargo build --release
 ```
+
+
+
+[This repo](https://github.com/jeremychone/jc-zed-tasks)

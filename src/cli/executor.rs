@@ -113,7 +113,7 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 
 	if let Some((zb, auto_pos)) = bound_and_pos {
 		// Wait for window to be created/focused
-		thread::sleep(Duration::from_millis(50));
+		thread::sleep(Duration::from_millis(200));
 
 		// Get Alacritty bounds to calculate relative position
 		let ab = mac::get_front_window_bounds(APP_NAME_ALACRITTY)?;
