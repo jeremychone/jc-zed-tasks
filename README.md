@@ -9,6 +9,8 @@ NOTE: It is being developed and tested on a Mac. PRs for Linux are welcome.
 Related Repos: 
 - [jc-zed-config](https://github.com/jeremychone/jc-zed-config)
 - [jc-zed-tasks (this one)](https://github.com/jeremychone/jc-zed-tasks)
+- [jc-tmux-config](https://github.com/jeremychone/jc-tmux-config)
+- [jc-alacritty-config](https://github.com/jeremychone/jc-alacritty-config)
 
 ## Usage
 
