@@ -14,6 +14,21 @@ NOTE: It is being developed and tested on a Mac. PRs for Linux are welcome.
 
 ## Usage
 
+```sh
+# Toggle Zed AI on/off
+jc-zed-tasks zed-toggle-ai
+
+# Save current md file into html
+jc-zed-tasks md-to-html --file path/to/file.md
+
+# Send 'r' to first TMUX pane with this dir
+jc-zed-tasks tmux-run-aip --dir .
+
+# Position Alacritty term at below this zed term
+jc-zed-tasks new-dev-term --cwd . --pos below
+```
+
+
 ### `zed-toggle-ai`
 
 Toggle AI features in Zed settings (`~/.config/zed/settings.json`).
