@@ -1,5 +1,5 @@
 use crate::Result;
-use crate::cli::cmd::{AutoPos, CliCmd, CliSubCmd, NewDevTermArgs, TmuxRunAipArgs};
+use crate::cli::cmd::{AutoPos, CliCmd, CliSubCmd, MdToHtmlArgs, NewDevTermArgs, TmuxRunAipArgs};
 use crate::support::mac::{self, APP_NAME_ALACRITTY, APP_NAME_ZED, WindowBounds};
 use crate::support::{jsons, os, proc, tmux};
 use clap::Parser as _;
@@ -14,6 +14,7 @@ pub fn execute() -> Result<()> {
 		CliSubCmd::TmuxRunAip(args) => exec_tmux_run_aip(args)?,
 		CliSubCmd::ZedToggleAi => exec_zed_toggle_ai()?,
 		CliSubCmd::NewDevTerm(args) => exec_new_dev_term(args)?,
+		CliSubCmd::MdToHtml(args) => exec_md_to_html(args)?,
 	}
 
 	Ok(())
@@ -22,6 +23,30 @@ pub fn execute() -> Result<()> {
 const ALACRITTY_BIN: &str = "/Applications/Alacritty.app/Contents/MacOS/alacritty";
 
 // region:    --- Exec Handlers
+
+fn exec_md_to_html(args: MdToHtmlArgs) -> Result<()> {
+	let md_path = SPath::new(args.file);
+	let content = read_to_string(&md_path)?;
+
+	let mut options = pulldown_cmark::Options::empty();
+	options.insert(pulldown_cmark::Options::ENABLE_TABLES);
+	options.insert(pulldown_cmark::Options::ENABLE_FOOTNOTES);
+	options.insert(pulldown_cmark::Options::ENABLE_STRIKETHROUGH);
+	options.insert(pulldown_cmark::Options::ENABLE_TASKLISTS);
+	options.insert(pulldown_cmark::Options::ENABLE_SMART_PUNCTUATION);
+
+	let parser = pulldown_cmark::Parser::new_ext(&content, options);
+
+	let mut html_output = String::new();
+	pulldown_cmark::html::push_html(&mut html_output, parser);
+
+	let html_path = md_path.ensure_extension("html");
+	fs::write(html_path.std_path(), html_output)?;
+
+	println!("Converted {md_path} to {html_path}");
+
+	Ok(())
+}
 
 fn exec_tmux_run_aip(args: TmuxRunAipArgs) -> Result<()> {
 	let dir_str = args.dir.as_deref().ok_or("tmux_run_aip must have a --dir")?;

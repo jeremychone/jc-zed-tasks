@@ -22,6 +22,14 @@ Toggle AI features in Zed settings (`~/.config/zed/settings.json`).
 jc-zed-tasks zed-toggle-ai
 ```
 
+### `md-to-html`
+
+Convert a Markdown file to HTML.
+
+```sh
+jc-zed-tasks md-to-html --file path/to/file.md
+```
+
 ### `tmux-run-aip`
 
 Send a 'r' to the first active 'aip' (AIPack) tmux pane that run in this dir. 

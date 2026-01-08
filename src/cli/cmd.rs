@@ -17,6 +17,16 @@ pub enum CliSubCmd {
 
 	/// Open a new Alacritty development terminal
 	NewDevTerm(NewDevTermArgs),
+
+	/// Convert a Markdown file to HTML
+	MdToHtml(MdToHtmlArgs),
+}
+
+#[derive(Args, Debug)]
+pub struct MdToHtmlArgs {
+	/// Path to the Markdown file
+	#[arg(long)]
+	pub file: String,
 }
 
 #[derive(Args, Debug)]

@@ -17,6 +17,8 @@ unused = { level = "allow", priority = -1 } # For exploratory dev.
 [dependencies]
 # -- CLI
 clap = { version = "4", features = ["derive"] }
+# -- Text Formats
+pulldown-cmark = "0.13.0"
 # -- File
 simple-fs = "0.9.2"
 # -- OS
