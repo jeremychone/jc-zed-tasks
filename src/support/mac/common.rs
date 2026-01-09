@@ -106,6 +106,53 @@ pub fn get_front_window(app_name: &str) -> Result<Option<AppWindow>> {
 	Ok(windows.into_iter().next())
 }
 
+/// Get all window names for all processes with the given name.
+pub fn get_all_windows_names_for_process(process_name: &str) -> Result<Vec<String>> {
+	let script = format!(
+		r#"tell application "System Events"
+			set namesOut to {{}}
+			repeat with p in (every process whose name is "{process_name}")
+				repeat with w in windows of p
+					set end of namesOut to name of w
+				end repeat
+			end repeat
+			return namesOut
+		end tell"#
+	);
+
+	let output = run_applescript(&script)?;
+	if output.is_empty() {
+		return Ok(vec![]);
+	}
+
+	let names: Vec<String> = output.split(',').map(|s| s.trim().to_string()).collect();
+
+	Ok(names)
+}
+
+/// Put the window matching the window name in front.
+pub fn move_window_front_by_window_name(process_name: &str, window_name: &str) -> Result<bool> {
+	let script = format!(
+		r#"tell application "System Events"
+			repeat with p in (every process whose name is "{process_name}")
+				repeat with w in windows of p
+					if (name of w) is "{window_name}" then
+						set frontmost of p to true
+						perform action "AXRaise" of w
+						set value of attribute "AXMain" of w to true
+						return true
+					end if
+				end repeat
+			end repeat
+			return false
+		end tell"#
+	);
+
+	let output = run_applescript(&script)?;
+
+	Ok(output == "true")
+}
+
 /// Get the names of all currently running application processes.
 /// Filters for applications that are not background-only to help identify valid UI targets.
 pub fn get_all_app_names() -> Result<Vec<String>> {
