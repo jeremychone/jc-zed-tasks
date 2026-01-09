@@ -3,7 +3,7 @@ use crate::cli::cmd::{
 	AutoPos, CliCmd, CliSubCmd, MdToHtmlArgs, NewDevTermArgs, SaveClipboardImageArgs, TmuxRunAipArgs,
 };
 use crate::support::mac::{self, APP_NAME_ALACRITTY, APP_NAME_ZED};
-use crate::support::{clipboard, jsons, os, proc, tmux};
+use crate::support::{clipboard, jsons, os, proc, tmux, zed};
 use clap::Parser as _;
 use lazy_regex::regex;
 use simple_fs::{SPath, list_files, read_to_string};
@@ -29,6 +29,8 @@ const ALACRITTY_BIN: &str = "/Applications/Alacritty.app/Contents/MacOS/alacritt
 // region:    --- Exec Handlers
 
 fn exec_save_clipboard_image(args: SaveClipboardImageArgs) -> Result<()> {
+	zed::touch_tasks_json()?;
+
 	let dir = SPath::new(args.dir);
 	if !dir.exists() {
 		return Err(format!("Directory does not exist: {dir}").into());
@@ -62,6 +64,8 @@ fn exec_save_clipboard_image(args: SaveClipboardImageArgs) -> Result<()> {
 }
 
 fn exec_md_to_html(args: MdToHtmlArgs) -> Result<()> {
+	zed::touch_tasks_json()?;
+
 	let md_path = SPath::new(args.file);
 	let content = read_to_string(&md_path)?;
 
@@ -212,8 +216,8 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 }
 
 fn exec_zed_toggle_ai() -> Result<()> {
-	let home = env::var("HOME").map_err(|_| "HOME environment variable not set")?;
-	let settings_path = SPath::new(home).join(".config/zed/settings.json");
+	let home = home::home_dir().ok_or("Could not find home directory")?;
+	let settings_path = SPath::from_std_path(home)?.join(".config/zed/settings.json");
 
 	if !settings_path.exists() {
 		return Err(crate::Error::custom(format!(
