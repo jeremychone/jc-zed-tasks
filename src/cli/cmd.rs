@@ -53,6 +53,10 @@ pub struct NewDevTermArgs {
 	/// Position the terminal relative to Zed
 	#[arg(long, value_enum)]
 	pub pos: Option<AutoPos>,
+
+	/// If terminal with same title exists, show it instead of creating a new one
+	#[arg(long)]
+	pub show_if_present: bool,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy)]

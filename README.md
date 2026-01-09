@@ -67,6 +67,7 @@ Open a new Alacritty development terminal.
 - `--cwd <PATH>`: Working directory for the new terminal.
 - `--with-tmux`: Start tmux in the new terminal.
 - `--pos <below|bottom>`: Position the terminal relative to Zed.
+- `--show-if-present`: If terminal with same title exists, show it instead of creating a new one.
 
 ```sh
 jc-zed-tasks new-dev-term --cwd . --pos bottom

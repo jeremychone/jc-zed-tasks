@@ -101,6 +101,16 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 
 	let title = format!("zed term - {cwd}");
 
+	if args.show_if_present {
+		if os::is_mac() {
+			if mac::move_window_front_by_window_name(APP_NAME_ALACRITTY, &title)? {
+				return Ok(());
+			}
+		} else {
+			eprintln!("Warning: --show-if-present is only supported on macOS.");
+		}
+	}
+
 	let mut proc_args: Vec<String> = if crate::support::proc::is_proc_running("alacritty") {
 		vec![
 			"msg".to_string(),
