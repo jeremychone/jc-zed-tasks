@@ -99,15 +99,24 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 		cwd
 	};
 
+	let title = format!("zed term - {cwd}");
+
 	let mut proc_args: Vec<String> = if crate::support::proc::is_proc_running("alacritty") {
 		vec![
 			"msg".to_string(),
 			"create-window".to_string(),
+			"--title".to_string(),
+			title.clone(),
 			"--working-directory".to_string(),
 			cwd.to_string(),
 		]
 	} else {
-		vec!["--working-directory".to_string(), cwd.to_string()]
+		vec![
+			"--title".to_string(),
+			title,
+			"--working-directory".to_string(),
+			cwd.to_string(),
+		]
 	};
 
 	if args.with_tmux {
