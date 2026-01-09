@@ -37,6 +37,7 @@ pub fn get_front_window_bounds(app_name: &str) -> Result<WindowBounds> {
 }
 
 /// Set the bounds of the frontmost (active) window for the given application.
+#[allow(unused)]
 pub fn set_front_window_bounds(app_name: &str, bounds: WindowBounds) -> Result<()> {
 	let _win = get_front_window(app_name)?.ok_or_else(|| format!("No window found for application: {app_name}"))?;
 
@@ -107,6 +108,7 @@ pub fn get_front_window(app_name: &str) -> Result<Option<AppWindow>> {
 }
 
 /// Get all window names for all processes with the given name.
+#[allow(unused)]
 pub fn get_all_windows_names_for_process(process_name: &str) -> Result<Vec<String>> {
 	let script = format!(
 		r#"tell application "System Events"
@@ -155,6 +157,7 @@ pub fn move_window_front_by_window_name(process_name: &str, window_name: &str) -
 
 /// Get the names of all currently running application processes.
 /// Filters for applications that are not background-only to help identify valid UI targets.
+#[allow(unused)]
 pub fn get_all_app_names() -> Result<Vec<String>> {
 	let script = r#"tell application "System Events"
 		get name of every application process whose background only is false
@@ -245,6 +248,7 @@ mod tests {
 
 	// DISABLED - Should not enable test that mutate window state
 	// #[test]
+	#[allow(unused)]
 	fn test_support_mac_common_set_front_window_xy_alacritty() -> Result<()> {
 		// -- Exec
 		let res = set_front_window_xy(APP_NAME_ALACRITTY, 100, 100);

@@ -14,6 +14,7 @@ pub struct WindowId(Arc<str>);
 #[mra::derive(Id!)]
 pub struct PaneId(Arc<str>);
 
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct TmuxPane {
 	pub id: PaneId,
@@ -26,6 +27,7 @@ pub struct TmuxPane {
 	pub active: bool,
 }
 
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct TmuxWindow {
 	pub id: WindowId,
@@ -35,6 +37,7 @@ pub struct TmuxWindow {
 	pub active: bool,
 }
 
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct TmuxSession {
 	pub id: SessionId,
@@ -47,6 +50,7 @@ pub struct TmuxSession {
 pub struct TmuxSessions(pub Vec<TmuxSession>);
 
 impl TmuxSessions {
+	#[allow(unused)]
 	pub fn is_empty(&self) -> bool {
 		self.0.is_empty()
 	}

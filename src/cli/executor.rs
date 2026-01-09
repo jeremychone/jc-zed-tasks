@@ -1,11 +1,11 @@
 use crate::Result;
 use crate::cli::cmd::{AutoPos, CliCmd, CliSubCmd, MdToHtmlArgs, NewDevTermArgs, TmuxRunAipArgs};
-use crate::support::mac::{self, APP_NAME_ALACRITTY, APP_NAME_ZED, WindowBounds};
+use crate::support::mac::{self, APP_NAME_ALACRITTY, APP_NAME_ZED};
 use crate::support::{jsons, os, proc, tmux};
 use clap::Parser as _;
 use simple_fs::{SPath, read_to_string};
 use std::time::Duration;
-use std::{env, fs, process, thread};
+use std::{env, fs, thread};
 
 pub fn execute() -> Result<()> {
 	let cli_cmd = CliCmd::parse();
@@ -121,12 +121,7 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 			cwd.to_string(),
 		]
 	} else {
-		vec![
-			"--title".to_string(),
-			title,
-			"--working-directory".to_string(),
-			cwd.to_string(),
-		]
+		vec!["--title".to_string(), title, "--working-directory".to_string(), cwd.to_string()]
 	};
 
 	if args.with_tmux {

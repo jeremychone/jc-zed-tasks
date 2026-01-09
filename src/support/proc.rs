@@ -22,7 +22,6 @@ pub fn is_proc_running(name: &str) -> bool {
 }
 
 pub fn run_proc_detach_spawn(cmd: &str, args: &[&str]) -> Result<()> {
-	use std::os::unix::process::CommandExt;
 	run_proc_daemon(|| {
 		// spawn and do not wait
 		let err = Command::new(cmd).args(args).spawn();

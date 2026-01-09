@@ -12,7 +12,7 @@ repository = "https://github.com/jeremychone/jc-zed-tasks"
 
 [lints.rust]
 unsafe_code = "forbid"
-unused = { level = "allow", priority = -1 } # For exploratory dev.
+# unused = { level = "allow", priority = -1 } # For exploratory dev.
 
 [dependencies]
 # -- CLI
@@ -27,4 +27,3 @@ daemonize = "0.5.0"
 derive_more = { version = "2", features = ["from", "display", "deref"] }
 macro_rules_attribute = "0.2"
 lazy-regex = "3"
-blake3 = "1.8.3"
