@@ -1,9 +1,12 @@
 use crate::Result;
-use crate::cli::cmd::{AutoPos, CliCmd, CliSubCmd, MdToHtmlArgs, NewDevTermArgs, TmuxRunAipArgs};
+use crate::cli::cmd::{
+	AutoPos, CliCmd, CliSubCmd, MdToHtmlArgs, NewDevTermArgs, SaveClipboardImageArgs, TmuxRunAipArgs,
+};
 use crate::support::mac::{self, APP_NAME_ALACRITTY, APP_NAME_ZED};
-use crate::support::{jsons, os, proc, tmux};
+use crate::support::{clipboard, jsons, os, proc, tmux};
 use clap::Parser as _;
-use simple_fs::{SPath, read_to_string};
+use lazy_regex::regex;
+use simple_fs::{SPath, list_files, read_to_string};
 use std::time::Duration;
 use std::{env, fs, thread};
 
@@ -14,6 +17,7 @@ pub fn execute() -> Result<()> {
 		CliSubCmd::TmuxRunAip(args) => exec_tmux_run_aip(args)?,
 		CliSubCmd::ZedToggleAi => exec_zed_toggle_ai()?,
 		CliSubCmd::NewDevTerm(args) => exec_new_dev_term(args)?,
+		CliSubCmd::SaveClipboardImage(args) => exec_save_clipboard_image(args)?,
 		CliSubCmd::MdToHtml(args) => exec_md_to_html(args)?,
 	}
 
@@ -23,6 +27,39 @@ pub fn execute() -> Result<()> {
 const ALACRITTY_BIN: &str = "/Applications/Alacritty.app/Contents/MacOS/alacritty";
 
 // region:    --- Exec Handlers
+
+fn exec_save_clipboard_image(args: SaveClipboardImageArgs) -> Result<()> {
+	let dir = SPath::new(args.dir);
+	if !dir.exists() {
+		return Err(format!("Directory does not exist: {dir}").into());
+	}
+
+	let re = regex!(r"^image-(\d+)\.png$");
+	let mut max_idx = 0;
+
+	// -- Find max index
+	let files = list_files(&dir, Some(&["image-*.png"]), None)?;
+	for file in files {
+		if let Some(caps) = re.captures(file.name()) {
+			if let Ok(idx) = caps[1].parse::<u32>() {
+				if idx > max_idx {
+					max_idx = idx;
+				}
+			}
+		}
+	}
+
+	// -- Save image
+	let next_idx = max_idx + 1;
+	let file_name = format!("image-{:02}.png", next_idx);
+	let dest_path = dir.join(file_name);
+
+	clipboard::save_to_png_image(&dest_path)?;
+
+	println!("Image saved to: {dest_path}");
+
+	Ok(())
+}
 
 fn exec_md_to_html(args: MdToHtmlArgs) -> Result<()> {
 	let md_path = SPath::new(args.file);

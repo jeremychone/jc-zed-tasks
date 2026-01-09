@@ -23,6 +23,9 @@ pulldown-cmark = "0.13.0"
 simple-fs = "0.9.2"
 # -- OS
 daemonize = "0.5.0"
+arboard = "3.6.1"
+# -- Image
+image = { version = "0.25", default-features = false, features = ["png"] }
 # -- Others
 derive_more = { version = "2", features = ["from", "display", "deref"] }
 macro_rules_attribute = "0.2"

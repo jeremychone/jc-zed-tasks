@@ -1,5 +1,6 @@
 // region:    --- Modules
 
+pub mod clipboard;
 pub mod jsons;
 pub mod mac;
 pub mod os;

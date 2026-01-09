@@ -18,8 +18,18 @@ pub enum CliSubCmd {
 	/// Open a new Alacritty development terminal
 	NewDevTerm(NewDevTermArgs),
 
+	/// Save image from clipboard to a directory with auto-increment name
+	SaveClipboardImage(SaveClipboardImageArgs),
+
 	/// Convert a Markdown file to HTML
 	MdToHtml(MdToHtmlArgs),
+}
+
+#[derive(Args, Debug)]
+pub struct SaveClipboardImageArgs {
+	/// Directory where to save the image
+	#[arg(long)]
+	pub dir: String,
 }
 
 #[derive(Args, Debug)]

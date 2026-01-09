@@ -18,6 +18,9 @@ NOTE: It is being developed and tested on a Mac. PRs for Linux are welcome.
 # Toggle Zed AI on/off
 jc-zed-tasks zed-toggle-ai
 
+# Save clipboard image to a directory (auto-incremented)
+jc-zed-tasks save-clipboard-image --dir ./images
+
 # Save current md file into html
 jc-zed-tasks md-to-html --file path/to/file.md
 
@@ -35,6 +38,15 @@ Toggle AI features in Zed settings (`~/.config/zed/settings.json`).
 
 ```sh
 jc-zed-tasks zed-toggle-ai
+```
+
+### `save-clipboard-image`
+
+Save the current image from the clipboard to a directory. 
+It looks for `image-*.png` files and uses the next available number (e.g., `image-01.png`, `image-02.png`).
+
+```sh
+jc-zed-tasks save-clipboard-image --dir ./docs/images
 ```
 
 ### `md-to-html`
