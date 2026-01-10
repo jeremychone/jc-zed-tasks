@@ -136,17 +136,17 @@ pub fn get_all_windows_names_for_process(process_name: &str) -> Result<Vec<Strin
 pub fn move_window_front_by_window_name(process_name: &str, window_name: &str) -> Result<bool> {
 	let script = format!(
 		r#"tell application "System Events"
-			repeat with p in (every process whose name is "{process_name}")
-				repeat with w in windows of p
-					if (name of w) is "{window_name}" then
-						set frontmost of p to true
-						perform action "AXRaise" of w
-						set value of attribute "AXMain" of w to true
-						return true
-					end if
-				end repeat
-			end repeat
-			return false
+			tell process "{process_name}"
+				try
+					set targetWin to (first window whose name is "{window_name}")
+					perform action "AXRaise" of targetWin
+					set value of attribute "AXMain" of targetWin to true
+					set frontmost to true
+					return true
+				on error
+					return false
+				end try
+			end tell
 		end tell"#
 	);
 
