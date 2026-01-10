@@ -168,7 +168,12 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 			cwd.to_string(),
 		]
 	} else {
-		vec!["--title".to_string(), title, "--working-directory".to_string(), cwd.to_string()]
+		vec![
+			"--title".to_string(),
+			title.clone(),
+			"--working-directory".to_string(),
+			cwd.to_string(),
+		]
 	};
 
 	if args.with_tmux {
@@ -198,8 +203,19 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 	// NOTE: Because the way proc_detach use deamon, here it won't print in the zed window
 
 	if let Some((zb, auto_pos)) = bound_and_pos {
-		// Wait for window to be created/focused
-		thread::sleep(Duration::from_millis(500));
+		// Wait for window to be created and focus it
+		let mut focused = false;
+		for _ in 0..10 {
+			if mac::move_window_front_by_window_name(APP_NAME_ALACRITTY, &title)? {
+				focused = true;
+				break;
+			}
+			thread::sleep(Duration::from_millis(100));
+		}
+
+		if !focused {
+			return Err(format!("Could not focus the newly created terminal window '{title}' for positioning").into());
+		}
 
 		// Get Alacritty bounds to calculate relative position
 		let ab = mac::get_front_window_bounds(APP_NAME_ALACRITTY)?;
