@@ -30,6 +30,10 @@ pub struct SaveClipboardImageArgs {
 	/// Directory where to save the image
 	#[arg(long)]
 	pub dir: String,
+
+	/// Copy Markdown reference to clipboard
+	#[arg(long)]
+	pub copy_md_ref: bool,
 }
 
 #[derive(Args, Debug)]

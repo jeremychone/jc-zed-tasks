@@ -26,3 +26,14 @@ pub fn save_to_png_image(dest_file_path: &SPath) -> Result<()> {
 
 	Ok(())
 }
+
+/// Sets the specified text to the clipboard.
+pub fn set_text(text: impl Into<String>) -> Result<()> {
+	let mut clipboard = Clipboard::new().map_err(|e| format!("Could not initialize clipboard: {e}"))?;
+
+	clipboard
+		.set_text(text.into())
+		.map_err(|e| format!("Could not set text to clipboard. Cause: {e}"))?;
+
+	Ok(())
+}

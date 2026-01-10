@@ -49,6 +49,12 @@ It looks for `image-*.png` files and uses the next available number (e.g., `imag
 jc-zed-tasks save-clipboard-image --dir ./docs/images
 ```
 
+Use `--copy-md-ref` to copy the Markdown reference to the clipboard.
+
+```sh
+jc-zed-tasks save-clipboard-image --dir ./docs/images --copy-md-ref
+```
+
 ### `md-to-html`
 
 Convert a Markdown file to HTML.

@@ -54,9 +54,15 @@ fn exec_save_clipboard_image(args: SaveClipboardImageArgs) -> Result<()> {
 	// -- Save image
 	let next_idx = max_idx + 1;
 	let file_name = format!("image-{:02}.png", next_idx);
-	let dest_path = dir.join(file_name);
+	let dest_path = dir.join(&file_name);
 
 	clipboard::save_to_png_image(&dest_path)?;
+
+	if args.copy_md_ref {
+		let md_ref = format!("![IMAGE]({file_name})");
+		clipboard::set_text(md_ref)?;
+		println!("Markdown reference copied to clipboard: {file_name}");
+	}
 
 	println!("Image saved to: {dest_path}");
 
