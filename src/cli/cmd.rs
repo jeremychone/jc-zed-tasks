@@ -16,7 +16,7 @@ pub enum CliSubCmd {
 	ZedToggleAi,
 
 	/// Toggle through Zed profiles
-	ZedToggleProfile(ZedToggleProfileArgs),
+	ToggleProfile(ToggleProfileArgs),
 
 	/// Open a new Alacritty development terminal
 	NewDevTerm(NewDevTermArgs),
@@ -58,7 +58,7 @@ pub struct TmuxRunAipArgs {
 }
 
 #[derive(Args, Debug)]
-pub struct ZedToggleProfileArgs {
+pub struct ToggleProfileArgs {
 	/// Profile name to toggle to. If already active, toggles back to 'default'.
 	pub profile: Option<String>,
 }
