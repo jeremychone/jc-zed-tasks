@@ -1,6 +1,46 @@
-use crate::Result;
+use crate::{Error, Result};
+use jsonc_parser::ParseOptions;
 use lazy_regex::regex;
 use serde_json::Value;
+use simple_fs::SPath;
+use std::borrow::Cow;
+
+// region:    --- JSONC Parser
+
+// Prase a json string content that can have
+/// - Comments
+/// - Trailing commas
+///
+/// Note: Property names still need to be quoted.
+pub fn parse_jsonc_to_serde_value(content: &str) -> Result<Option<serde_json::Value>> {
+	static OPTIONS: ParseOptions = ParseOptions {
+		allow_comments: true,
+		allow_trailing_commas: true,
+		// this one is set to FALSE, for better IDE compatibility
+		allow_loose_object_property_names: false,
+		allow_single_quoted_strings: false,
+		allow_hexadecimal_numbers: false,
+		allow_unary_plus_numbers: false,
+	};
+
+	let json_value = jsonc_parser::parse_to_serde_value(content, &OPTIONS).map_err(|err| {
+		let content = truncate_with_ellipsis(content, 300, "...");
+		Error::custom(format!("Fail to parse json.\nCause: {err}\nJson Content:\n{content}"))
+	})?;
+
+	Ok(json_value)
+}
+
+/// Read & parse a json or jsonc/trailing-commas
+pub fn load_jsons_to_serde_value(file: &SPath) -> Result<Option<serde_json::Value>> {
+	let content = simple_fs::read_to_string(file)?;
+
+	let value = parse_jsonc_to_serde_value(&content)?;
+
+	Ok(value)
+}
+
+// endregion: --- JSONC Parser
 
 pub fn update_json_value_text_mode(content: &str, prop_path: &[&str], value: &Value) -> Result<String> {
 	let Some(key) = prop_path.last() else {
@@ -81,3 +121,25 @@ pub fn toggle_bool_text_mode(content: &str, prop_path: &[&str]) -> Result<String
 		}
 	}
 }
+
+// region:    --- Support
+
+pub fn truncate_with_ellipsis<'a>(content: &'a str, max_chars: usize, ellipsis: &str) -> Cow<'a, str> {
+	let s_len = content.chars().count();
+	let ellipsis_len = ellipsis.chars().count();
+
+	if s_len > max_chars {
+		if ellipsis_len >= max_chars {
+			// Ellipsis itself takes all the space (or more)
+			Cow::from(ellipsis.chars().take(max_chars).collect::<String>())
+		} else {
+			let keep_chars = max_chars - ellipsis_len;
+			let truncated: String = content.chars().take(keep_chars).collect();
+			Cow::from(format!("{truncated}{ellipsis}"))
+		}
+	} else {
+		Cow::from(content)
+	}
+}
+
+// endregion: --- Support

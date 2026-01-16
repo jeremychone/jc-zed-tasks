@@ -1,6 +1,5 @@
 use crate::support::jsons;
 use crate::{Error, Result};
-use lazy_regex::regex;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use simple_fs::SPath;
@@ -65,17 +64,10 @@ pub fn touch_tasks_json() -> Result<()> {
 pub fn load_settings() -> Result<serde_json::Value> {
 	let home = home::home_dir().ok_or("Could not find home directory")?;
 	let settings_path = SPath::from_std_path(home)?.join(".config/zed/settings.json");
-	let content = simple_fs::read_to_string(&settings_path)?;
 
-	// Strip single line comments
-	let re_single = regex!(r"//.*");
-	let content = re_single.replace_all(&content, "");
+	let value = jsons::load_jsons_to_serde_value(&settings_path)?
+		.ok_or_else(|| Error::custom(format!("Zed settings file is empty: {settings_path}")))?;
 
-	// Strip multi line comments
-	let re_multi = regex!(r"/\*[\s\S]*?\*/");
-	let content = re_multi.replace_all(&content, "");
-
-	let value: serde_json::Value = serde_json::from_str(&content)?;
 	Ok(value)
 }
 
