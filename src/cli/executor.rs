@@ -16,6 +16,7 @@ pub fn execute() -> Result<()> {
 	match cli_cmd.command {
 		CliSubCmd::TmuxRunAip(args) => exec_tmux_run_aip(args)?,
 		CliSubCmd::ZedToggleAi => exec_zed_toggle_ai()?,
+		CliSubCmd::ZedToggleProfile => exec_zed_toggle_profile()?,
 		CliSubCmd::NewDevTerm(args) => exec_new_dev_term(args)?,
 		CliSubCmd::SaveClipboardImage(args) => exec_save_clipboard_image(args)?,
 		CliSubCmd::MdToHtml(args) => exec_md_to_html(args)?,
@@ -255,6 +256,10 @@ fn exec_zed_toggle_ai() -> Result<()> {
 	println!("Zed AI toggled.");
 
 	Ok(())
+}
+
+fn exec_zed_toggle_profile() -> Result<()> {
+	zed::toggle_profile()
 }
 
 // endregion: --- Exec Handlers

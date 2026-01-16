@@ -15,6 +15,9 @@ pub enum CliSubCmd {
 	/// Toggle AI in Zed settings (~/.config/zed/settings.json)
 	ZedToggleAi,
 
+	/// Toggle through Zed profiles
+	ZedToggleProfile,
+
 	/// Open a new Alacritty development terminal
 	NewDevTerm(NewDevTermArgs),
 

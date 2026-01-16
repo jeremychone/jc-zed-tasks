@@ -14,6 +14,8 @@ pub enum Error {
 	Io(std::io::Error),
 	#[from]
 	Daemonize(daemonize::Error),
+	#[from]
+	SerdeJson(serde_json::Error),
 }
 
 // region:    --- Custom
