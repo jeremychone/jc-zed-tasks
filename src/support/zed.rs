@@ -1,25 +1,27 @@
 use crate::support::jsons;
 use crate::{Error, Result};
+use lazy_regex::regex;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use simple_fs::SPath;
 use std::collections::HashMap;
 use std::fs::{self, OpenOptions, metadata};
 
 // region:    --- Profiles Types
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct ProfilesConfig {
 	order: Vec<String>,
 	#[serde(flatten)]
 	profiles: HashMap<String, Profile>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct Profile {
 	zed_config: Vec<ZedConfigEntry>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct ZedConfigEntry {
 	config_path: Vec<String>,
 	value: serde_json::Value,
@@ -60,6 +62,23 @@ pub fn touch_tasks_json() -> Result<()> {
 	Ok(())
 }
 
+pub fn load_settings() -> Result<serde_json::Value> {
+	let home = home::home_dir().ok_or("Could not find home directory")?;
+	let settings_path = SPath::from_std_path(home)?.join(".config/zed/settings.json");
+	let content = simple_fs::read_to_string(&settings_path)?;
+
+	// Strip single line comments
+	let re_single = regex!(r"//.*");
+	let content = re_single.replace_all(&content, "");
+
+	// Strip multi line comments
+	let re_multi = regex!(r"/\*[\s\S]*?\*/");
+	let content = re_multi.replace_all(&content, "");
+
+	let value: serde_json::Value = serde_json::from_str(&content)?;
+	Ok(value)
+}
+
 pub fn toggle_profile() -> Result<()> {
 	let home = home::home_dir().ok_or("Could not find home directory")?;
 	let config_dir = SPath::from_std_path(&home)?.join(".config/jc-zed-tasks");
@@ -67,12 +86,14 @@ pub fn toggle_profile() -> Result<()> {
 	let current_path = config_dir.join("profile-current.json");
 	let settings_path = SPath::from_std_path(&home)?.join(".config/zed/settings.json");
 
-	if !profiles_path.exists() {
-		return Err(Error::custom(format!("Profiles config not found at: {profiles_path}")));
-	}
+	init_profiles_if_missing(&config_dir, &profiles_path, &current_path)?;
+
+	// ... Rest of toggle_profile
 
 	if !settings_path.exists() {
-		return Err(Error::custom(format!("Zed settings file not found at: {settings_path}")));
+		return Err(Error::custom(format!(
+			"Zed settings file not found at: {settings_path}"
+		)));
 	}
 
 	// -- Load configs
@@ -112,10 +133,91 @@ pub fn toggle_profile() -> Result<()> {
 
 	// -- Save changes
 	fs::write(settings_path.std_path(), settings_content)?;
-	let new_current = CurrentProfile { current_profile: next_profile_name.clone() };
+	let new_current = CurrentProfile {
+		current_profile: next_profile_name.clone(),
+	};
 	fs::write(current_path.std_path(), serde_json::to_string_pretty(&new_current)?)?;
 
 	println!("Switched to profile: {next_profile_name}");
+
+	// region:    --- Support
+
+	fn init_profiles_if_missing(config_dir: &SPath, profiles_path: &SPath, current_path: &SPath) -> Result<()> {
+		if profiles_path.exists() {
+			return Ok(());
+		}
+
+		fs::create_dir_all(config_dir.std_path())?;
+
+		let settings = load_settings()?;
+		let ui_font_size = settings
+			.get("ui_font_size")
+			.ok_or("ui_font_size not found in settings.json")?
+			.clone();
+		let buffer_font_size = settings
+			.get("buffer_font_size")
+			.ok_or("buffer_font_size not found in settings.json")?
+			.clone();
+
+		// -- Build initial profiles.json
+		let mut profiles = HashMap::new();
+
+		// Default Profile
+		profiles.insert(
+			"default".to_string(),
+			Profile {
+				zed_config: vec![
+					ZedConfigEntry {
+						config_path: vec!["ui_font_size".to_string()],
+						value: ui_font_size,
+					},
+					ZedConfigEntry {
+						config_path: vec!["buffer_font_size".to_string()],
+						value: buffer_font_size,
+					},
+				],
+			},
+		);
+
+		// Demo Profile
+		profiles.insert(
+			"demo".to_string(),
+			Profile {
+				zed_config: vec![
+					ZedConfigEntry {
+						config_path: vec!["ui_font_size".to_string()],
+						value: json!(24),
+					},
+					ZedConfigEntry {
+						config_path: vec!["buffer_font_size".to_string()],
+						value: json!(24),
+					},
+				],
+			},
+		);
+
+		let profiles_config = ProfilesConfig {
+			order: vec!["default".to_string(), "demo".to_string()],
+			profiles,
+		};
+
+		fs::write(
+			profiles_path.std_path(),
+			serde_json::to_string_pretty(&profiles_config)?,
+		)?;
+
+		// -- Build initial profile-current.json
+		// We set it to "demo" so the first toggle switches to "default" (or vice versa depending on logic)
+		// Requirement says initialize to "demo"
+		let current_profile = CurrentProfile {
+			current_profile: "demo".to_string(),
+		};
+		fs::write(current_path.std_path(), serde_json::to_string_pretty(&current_profile)?)?;
+
+		Ok(())
+	}
+
+	// endregion: --- Support
 	touch_tasks_json()?;
 
 	Ok(())
