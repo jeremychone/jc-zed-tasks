@@ -1,6 +1,7 @@
 use crate::Result;
 use crate::cli::cmd::{
 	AutoPos, CliCmd, CliSubCmd, MdToHtmlArgs, NewDevTermArgs, SaveClipboardImageArgs, TmuxRunAipArgs,
+	ZedToggleProfileArgs,
 };
 use crate::support::mac::{self, APP_NAME_ALACRITTY, APP_NAME_ZED};
 use crate::support::{clipboard, jsons, os, proc, tmux, zed};
@@ -16,7 +17,7 @@ pub fn execute() -> Result<()> {
 	match cli_cmd.command {
 		CliSubCmd::TmuxRunAip(args) => exec_tmux_run_aip(args)?,
 		CliSubCmd::ZedToggleAi => exec_zed_toggle_ai()?,
-		CliSubCmd::ZedToggleProfile => exec_zed_toggle_profile()?,
+		CliSubCmd::ZedToggleProfile(args) => exec_zed_toggle_profile(args)?,
 		CliSubCmd::NewDevTerm(args) => exec_new_dev_term(args)?,
 		CliSubCmd::SaveClipboardImage(args) => exec_save_clipboard_image(args)?,
 		CliSubCmd::MdToHtml(args) => exec_md_to_html(args)?,
@@ -258,8 +259,8 @@ fn exec_zed_toggle_ai() -> Result<()> {
 	Ok(())
 }
 
-fn exec_zed_toggle_profile() -> Result<()> {
-	zed::toggle_profile()
+fn exec_zed_toggle_profile(args: ZedToggleProfileArgs) -> Result<()> {
+	zed::toggle_profile(args.profile)
 }
 
 // endregion: --- Exec Handlers

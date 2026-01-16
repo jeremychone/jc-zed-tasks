@@ -79,7 +79,7 @@ pub fn load_settings() -> Result<serde_json::Value> {
 	Ok(value)
 }
 
-pub fn toggle_profile() -> Result<()> {
+pub fn toggle_profile(target_profile: Option<String>) -> Result<()> {
 	let home = home::home_dir().ok_or("Could not find home directory")?;
 	let config_dir = SPath::from_std_path(&home)?.join(".config/jc-zed-tasks");
 	let profiles_path = config_dir.join("profiles.json");
@@ -112,16 +112,28 @@ pub fn toggle_profile() -> Result<()> {
 		profiles_config.order[0].clone()
 	};
 
-	// -- Determine next profile
-	let current_idx = profiles_config.order.iter().position(|p| p == &current_profile_name);
-	let next_idx = match current_idx {
-		Some(idx) => (idx + 1) % profiles_config.order.len(),
-		None => 0,
+	// -- Determine next profile name
+	let next_profile_name = if let Some(target) = target_profile {
+		if !profiles_config.profiles.contains_key(&target) {
+			return Err(Error::custom(format!("Profile '{target}' not found in profiles.json")));
+		}
+		if target == current_profile_name {
+			"default".to_string()
+		} else {
+			target
+		}
+	} else {
+		let current_idx = profiles_config.order.iter().position(|p| p == &current_profile_name);
+		let next_idx = match current_idx {
+			Some(idx) => (idx + 1) % profiles_config.order.len(),
+			None => 0,
+		};
+		profiles_config.order[next_idx].clone()
 	};
-	let next_profile_name = &profiles_config.order[next_idx];
+
 	let next_profile = profiles_config
 		.profiles
-		.get(next_profile_name)
+		.get(&next_profile_name)
 		.ok_or_else(|| Error::custom(format!("Profile '{next_profile_name}' not found in profiles.json")))?;
 
 	// -- Update settings.json
