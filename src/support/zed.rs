@@ -17,11 +17,12 @@ struct ProfilesConfig {
 
 #[derive(Deserialize, Serialize)]
 struct Profile {
-	zed_config: Vec<ZedConfigEntry>,
+	zed_config: Vec<ConfigEntry>,
+	alacritty_config: Vec<ConfigEntry>,
 }
 
 #[derive(Deserialize, Serialize)]
-struct ZedConfigEntry {
+struct ConfigEntry {
 	config_path: Vec<String>,
 	value: serde_json::Value,
 }
@@ -134,9 +135,20 @@ pub fn toggle_profile(target_profile: Option<String>) -> Result<()> {
 		let path_refs: Vec<&str> = entry.config_path.iter().map(|s| s.as_str()).collect();
 		settings_content = jsons::update_json_value_text_mode(&settings_content, &path_refs, &entry.value)?;
 	}
+	fs::write(settings_path.std_path(), settings_content)?;
+
+	// -- Update alacritty.toml
+	if !next_profile.alacritty_config.is_empty() {
+		let alacritty_path = crate::support::alacritty::get_config_path()?;
+		let mut alacritty_content = fs::read_to_string(alacritty_path.std_path())?;
+		for entry in &next_profile.alacritty_config {
+			let path_refs: Vec<&str> = entry.config_path.iter().map(|s| s.as_str()).collect();
+			alacritty_content = crate::support::tomls::update_toml_value_text_mode(&alacritty_content, &path_refs, &entry.value)?;
+		}
+		fs::write(alacritty_path.std_path(), alacritty_content)?;
+	}
 
 	// -- Save changes
-	fs::write(settings_path.std_path(), settings_content)?;
 	let new_current = CurrentProfile {
 		current_profile: next_profile_name.clone(),
 	};
@@ -163,6 +175,15 @@ pub fn toggle_profile(target_profile: Option<String>) -> Result<()> {
 			.ok_or("buffer_font_size not found in settings.json")?
 			.clone();
 
+		// -- Get Alacritty Font Size
+		let alacritty_settings = crate::support::alacritty::load_settings().ok();
+		let alacritty_font_size = alacritty_settings
+			.as_ref()
+			.and_then(|s| s.get("font"))
+			.and_then(|f| f.get("size"))
+			.cloned()
+			.unwrap_or(serde_json::json!(16));
+
 		// -- Build initial profiles.json
 		let mut profiles = HashMap::new();
 
@@ -171,15 +192,19 @@ pub fn toggle_profile(target_profile: Option<String>) -> Result<()> {
 			"default".to_string(),
 			Profile {
 				zed_config: vec![
-					ZedConfigEntry {
+					ConfigEntry {
 						config_path: vec!["ui_font_size".to_string()],
 						value: ui_font_size,
 					},
-					ZedConfigEntry {
+					ConfigEntry {
 						config_path: vec!["buffer_font_size".to_string()],
 						value: buffer_font_size,
 					},
 				],
+				alacritty_config: vec![ConfigEntry {
+					config_path: vec!["font".to_string(), "size".to_string()],
+					value: alacritty_font_size,
+				}],
 			},
 		);
 
@@ -188,15 +213,19 @@ pub fn toggle_profile(target_profile: Option<String>) -> Result<()> {
 			"demo".to_string(),
 			Profile {
 				zed_config: vec![
-					ZedConfigEntry {
+					ConfigEntry {
 						config_path: vec!["ui_font_size".to_string()],
 						value: json!(24),
 					},
-					ZedConfigEntry {
+					ConfigEntry {
 						config_path: vec!["buffer_font_size".to_string()],
 						value: json!(24),
 					},
 				],
+				alacritty_config: vec![ConfigEntry {
+					config_path: vec!["font".to_string(), "size".to_string()],
+					value: json!(20),
+				}],
 			},
 		);
 
