@@ -57,7 +57,6 @@ fn toggle_profile(target_profile: Option<String>) -> Result<()> {
 	// -- Load configs
 	let profiles_content = read_to_string(&profiles_path)?;
 	let profiles_config: ProfilesConfig = serde_json::from_str(&profiles_content)?;
-
 	if profiles_config.order.is_empty() {
 		return Err("No profiles defined in 'order' array in profiles.json".into());
 	}
@@ -144,13 +143,13 @@ fn init_profiles_if_missing(config_dir: &SPath, profiles_path: &SPath, current_p
 		.clone();
 
 	// -- Get Alacritty Font Size
-	let alacritty_settings = alacritty::load_settings().ok();
+
+	let alacritty_settings = alacritty::load_settings()?;
 	let alacritty_font_size = alacritty_settings
-		.as_ref()
-		.and_then(|s| s.get("font"))
+		.get("font")
 		.and_then(|f| f.get("size"))
-		.cloned()
-		.unwrap_or(serde_json::json!(16));
+		.ok_or("alacritty font size not found")?
+		.clone(); // todo, should extract.
 
 	// -- Build initial profiles.json
 	let mut profiles = HashMap::new();
