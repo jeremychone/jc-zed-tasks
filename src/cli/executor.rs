@@ -26,6 +26,7 @@ pub fn execute() -> Result<()> {
 	Ok(())
 }
 
+const BOTTOM_MARGIN: i32 = 24;
 const ALACRITTY_BIN: &str = "/Applications/Alacritty.app/Contents/MacOS/alacritty";
 
 // region:    --- Exec Handlers
@@ -226,7 +227,7 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 		let ax = zb.x + (zb.width - ab.width) / 2;
 		let ay = match auto_pos {
 			AutoPos::Below => zb.y + zb.height + 4,
-			AutoPos::Bottom => zb.y + zb.height - ab.height,
+			AutoPos::Bottom => zb.y + zb.height - ab.height - BOTTOM_MARGIN,
 		};
 
 		mac::set_front_window_xy(APP_NAME_ALACRITTY, ax, ay)?;
