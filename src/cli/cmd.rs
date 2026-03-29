@@ -77,6 +77,10 @@ pub struct NewDevTermArgs {
 	#[arg(long, value_enum)]
 	pub pos: Option<AutoPos>,
 
+	/// Reposition the terminal window when position is requested
+	#[arg(long)]
+	pub reposition: bool,
+
 	/// If terminal with same title exists, show it instead of creating a new one
 	#[arg(long)]
 	pub show_if_present: bool,

@@ -150,11 +150,15 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 	};
 
 	let title = format!("zed term - {cwd}");
+	let mut window_already_exists = false;
 
 	if args.show_if_present {
 		if os::is_mac() {
 			if mac::move_window_front_by_window_name(APP_NAME_ALACRITTY, &title)? {
-				return Ok(());
+				if !args.reposition || args.pos.is_none() {
+					return Ok(());
+				}
+				window_already_exists = true;
 			}
 		} else {
 			eprintln!("Warning: --show-if-present is only supported on macOS.");
@@ -200,8 +204,10 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 	};
 
 	// -- Detach and run
-	let proc_args: Vec<&str> = proc_args.iter().map(|s| s.as_str()).collect();
-	proc::run_proc_detach_spawn(ALACRITTY_BIN, &proc_args)?;
+	if !window_already_exists {
+		let proc_args: Vec<&str> = proc_args.iter().map(|s| s.as_str()).collect();
+		proc::run_proc_detach_spawn(ALACRITTY_BIN, &proc_args)?;
+	}
 
 	// NOTE: Because the way proc_detach use deamon, here it won't print in the zed window
 
