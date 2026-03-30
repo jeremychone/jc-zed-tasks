@@ -59,8 +59,8 @@ struct TerminalDims {
 impl Default for TerminalDims {
 	fn default() -> Self {
 		Self {
-			width: 960,
-			height: 284,
+			width: 1816,
+			height: 520,
 		}
 	}
 }

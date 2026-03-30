@@ -190,10 +190,7 @@ fn init_profiles_if_missing(config_dir: &SPath, profiles_path: &SPath, current_p
 				config_path: vec!["font".to_string(), "size".to_string()],
 				value: alacritty_font_size,
 			}],
-			terminal_dims: TerminalDims {
-				width: 960,
-				height: 284,
-			},
+			terminal_dims: TerminalDims::default(),
 		},
 	);
 
@@ -215,10 +212,7 @@ fn init_profiles_if_missing(config_dir: &SPath, profiles_path: &SPath, current_p
 				config_path: vec!["font".to_string(), "size".to_string()],
 				value: json!(20),
 			}],
-			terminal_dims: TerminalDims {
-				width: 960,
-				height: 284,
-			},
+			terminal_dims: TerminalDims::default(),
 		},
 	);
 
