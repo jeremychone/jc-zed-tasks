@@ -8,7 +8,8 @@ pub fn load_toml_to_serde_value(file: &SPath) -> Result<Option<serde_json::Value
 		return Ok(None);
 	}
 	let content = simple_fs::read_to_string(file)?;
-	let value: Value = toml::from_str(&content).map_err(|e| crate::Error::custom(format!("Fail to parse TOML: {e}")))?;
+	let value: Value =
+		toml::from_str(&content).map_err(|e| crate::Error::custom(format!("Fail to parse TOML: {e}")))?;
 	Ok(Some(value))
 }
 
@@ -37,7 +38,11 @@ pub fn update_toml_value_text_mode(content: &str, prop_path: &[&str], value: &Va
 		Value::String(s) => format!(r#""{s}""#),
 		Value::Bool(b) => b.to_string(),
 		Value::Number(n) => n.to_string(),
-		_ => return Err(crate::Error::custom(format!("Unsupported value type for surgical update: {value:?}"))),
+		_ => {
+			return Err(crate::Error::custom(format!(
+				"Unsupported value type for surgical update: {value:?}"
+			)));
+		}
 	};
 
 	let new_content = re.replace(content, |caps: &regex::Captures| {

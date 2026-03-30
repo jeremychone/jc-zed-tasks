@@ -45,12 +45,11 @@ fn exec_save_clipboard_image(args: SaveClipboardImageArgs) -> Result<()> {
 	// -- Find max index
 	let files = list_files(&dir, Some(&["image-*.png"]), None)?;
 	for file in files {
-		if let Some(caps) = re.captures(file.name()) {
-			if let Ok(idx) = caps[1].parse::<u32>() {
-				if idx > max_idx {
-					max_idx = idx;
-				}
-			}
+		if let Some(caps) = re.captures(file.name())
+			&& let Ok(idx) = caps[1].parse::<u32>()
+			&& idx > max_idx
+		{
+			max_idx = idx;
 		}
 	}
 

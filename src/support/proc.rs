@@ -31,7 +31,7 @@ pub fn run_proc_detach_spawn(cmd: &str, args: &[&str]) -> Result<()> {
 			Err(err) => {
 				let msg = format!("Failed to spawn '{cmd}'. Cause: {err}");
 				println!("{msg}");
-				return Err(msg.into());
+				Err(msg.into())
 			}
 		}
 	})
