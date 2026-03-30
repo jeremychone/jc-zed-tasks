@@ -20,6 +20,9 @@ struct ProfilesConfig {
 struct Profile {
 	zed_config: Vec<ConfigEntry>,
 	alacritty_config: Vec<ConfigEntry>,
+
+	#[serde(default)]
+	terminal_dims: TerminalDims,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -31,6 +34,21 @@ struct ConfigEntry {
 #[derive(Deserialize, Serialize)]
 struct CurrentProfile {
 	current_profile: String,
+}
+
+#[derive(Deserialize, Serialize)]
+struct TerminalDims {
+	width: i32,
+	height: i32,
+}
+
+impl Default for TerminalDims {
+	fn default() -> Self {
+		Self {
+			width: 960,
+			height: 284,
+		}
+	}
 }
 
 // endregion: --- Types
@@ -172,6 +190,10 @@ fn init_profiles_if_missing(config_dir: &SPath, profiles_path: &SPath, current_p
 				config_path: vec!["font".to_string(), "size".to_string()],
 				value: alacritty_font_size,
 			}],
+			terminal_dims: TerminalDims {
+				width: 960,
+				height: 284,
+			},
 		},
 	);
 
@@ -193,6 +215,10 @@ fn init_profiles_if_missing(config_dir: &SPath, profiles_path: &SPath, current_p
 				config_path: vec!["font".to_string(), "size".to_string()],
 				value: json!(20),
 			}],
+			terminal_dims: TerminalDims {
+				width: 960,
+				height: 284,
+			},
 		},
 	);
 

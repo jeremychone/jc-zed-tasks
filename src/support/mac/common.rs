@@ -56,6 +56,7 @@ pub fn set_front_window_bounds(app_name: &str, bounds: WindowBounds) -> Result<(
 }
 
 /// Set the position (x, y) of the frontmost (active) window for the given application.
+#[allow(unused)]
 pub fn set_front_window_xy(app_name: &str, x: i32, y: i32) -> Result<()> {
 	let _win = get_front_window(app_name)?.ok_or_else(|| format!("No window found for application: {app_name}"))?;
 

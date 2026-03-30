@@ -7,6 +7,7 @@ use crate::support::mac::{self, APP_NAME_ALACRITTY, APP_NAME_ZED};
 use crate::support::{clipboard, jsons, os, proc, tmux, zed};
 use clap::Parser as _;
 use lazy_regex::regex;
+use serde::Deserialize;
 use simple_fs::{SPath, list_files, read_to_string};
 use std::time::Duration;
 use std::{env, fs, thread};
@@ -28,6 +29,43 @@ pub fn execute() -> Result<()> {
 
 const BOTTOM_MARGIN: i32 = 24;
 const ALACRITTY_BIN: &str = "/Applications/Alacritty.app/Contents/MacOS/alacritty";
+
+// region:    --- Types
+
+#[derive(Deserialize)]
+struct ProfilesConfig {
+	order: Vec<String>,
+	#[serde(flatten)]
+	profiles: std::collections::HashMap<String, Profile>,
+}
+
+#[derive(Deserialize)]
+struct Profile {
+	#[serde(default)]
+	terminal_dims: TerminalDims,
+}
+
+#[derive(Deserialize)]
+struct CurrentProfile {
+	current_profile: String,
+}
+
+#[derive(Deserialize)]
+struct TerminalDims {
+	width: i32,
+	height: i32,
+}
+
+impl Default for TerminalDims {
+	fn default() -> Self {
+		Self {
+			width: 960,
+			height: 284,
+		}
+	}
+}
+
+// endregion: --- Types
 
 // region:    --- Exec Handlers
 
@@ -226,16 +264,24 @@ fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
 		}
 
 		// Get Alacritty bounds to calculate relative position
-		let ab = mac::get_front_window_bounds(APP_NAME_ALACRITTY)?;
+		let terminal_dims = load_current_terminal_dims()?;
 
 		// Calculate relative position (centered horizontally)
-		let ax = zb.x + (zb.width - ab.width) / 2;
+		let ax = zb.x + (zb.width - terminal_dims.width) / 2;
 		let ay = match auto_pos {
 			AutoPos::Below => zb.y + zb.height + 4,
-			AutoPos::Bottom => zb.y + zb.height - ab.height - BOTTOM_MARGIN,
+			AutoPos::Bottom => zb.y + zb.height - terminal_dims.height - BOTTOM_MARGIN,
 		};
 
-		mac::set_front_window_xy(APP_NAME_ALACRITTY, ax, ay)?;
+		mac::set_front_window_bounds(
+			APP_NAME_ALACRITTY,
+			mac::WindowBounds {
+				x: ax,
+				y: ay,
+				width: terminal_dims.width,
+				height: terminal_dims.height,
+			},
+		)?;
 	} else {
 		if args.pos.is_some() {
 			println!("Zed bounds not found, running detached.");
@@ -266,3 +312,37 @@ fn exec_zed_toggle_ai() -> Result<()> {
 }
 
 // endregion: --- Exec Handlers
+
+// region:    --- Support
+
+fn load_current_terminal_dims() -> Result<TerminalDims> {
+	let home = home::home_dir().ok_or("Could not find home directory")?;
+	let config_dir = SPath::from_std_path(&home)?.join(".config/jc-zed-tasks");
+	let profiles_path = config_dir.join("profiles.json");
+	let current_path = config_dir.join("profile-current.json");
+
+	if !profiles_path.exists() || !current_path.exists() {
+		return Ok(TerminalDims::default());
+	}
+
+	let profiles_content = read_to_string(&profiles_path)?;
+	let profiles_config: ProfilesConfig = serde_json::from_str(&profiles_content)?;
+
+	let current_content = read_to_string(&current_path)?;
+	let current_config: CurrentProfile = serde_json::from_str(&current_content)?;
+
+	let _ = &profiles_config.order;
+
+	let terminal_dims = profiles_config
+		.profiles
+		.get(&current_config.current_profile)
+		.map(|profile| TerminalDims {
+			width: profile.terminal_dims.width,
+			height: profile.terminal_dims.height,
+		})
+		.unwrap_or_default();
+
+	Ok(terminal_dims)
+}
+
+// endregion: --- Support
