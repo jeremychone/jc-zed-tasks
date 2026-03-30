@@ -13,7 +13,8 @@ pub fn get_front_window_bounds(app_name: &str) -> Result<WindowBounds> {
 	let script = format!(
 		r#"tell application "System Events"
 			tell process "{app_name}"
-				get {{position, size}} of window 1
+				set frontWin to first window whose value of attribute "AXMain" is true
+				get {{position, size}} of frontWin
 			end tell
 		end tell"#
 	);
@@ -44,10 +45,14 @@ pub fn set_front_window_bounds(app_name: &str, bounds: WindowBounds) -> Result<(
 	let x2 = bounds.x + bounds.width;
 	let y2 = bounds.y + bounds.height;
 	let script = format!(
-		r#"tell application "{app_name}"
-			set bounds of window 1 to {{{}, {}, {}, {}}}
+		r#"tell application "System Events"
+			tell process "{app_name}"
+				set frontWin to first window whose value of attribute "AXMain" is true
+				set position of frontWin to {{{}, {}}}
+				set size of frontWin to {{{}, {}}}
+			end tell
 		end tell"#,
-		bounds.x, bounds.y, x2, y2
+		bounds.x, bounds.y, bounds.width, bounds.height
 	);
 
 	run_applescript(&script)?;
@@ -63,7 +68,8 @@ pub fn set_front_window_xy(app_name: &str, x: i32, y: i32) -> Result<()> {
 	let script = format!(
 		r#"tell application "System Events"
 			tell process "{app_name}"
-				set position of window 1 to {{{}, {}}}
+				set frontWin to first window whose value of attribute "AXMain" is true
+				set position of frontWin to {{{}, {}}}
 			end tell
 		end tell"#,
 		x, y
