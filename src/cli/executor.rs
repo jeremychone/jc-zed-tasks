@@ -60,7 +60,7 @@ impl Default for TerminalDims {
 	fn default() -> Self {
 		Self {
 			width: 1816,
-			height: 520,
+			height: 510, // works well with demo size
 		}
 	}
 }
