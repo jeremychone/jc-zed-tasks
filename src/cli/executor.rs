@@ -3,11 +3,11 @@ use crate::cli::cmd::{
 	AutoPos, CliCmd, CliSubCmd, MdToHtmlArgs, NewDevTermArgs, SaveClipboardImageArgs, TmuxRunAipArgs,
 };
 use crate::cli::exec_toggle;
+use crate::cli::exec_toggle::{CurrentProfile, ProfilesConfig, TerminalDims};
 use crate::support::mac::{self, APP_NAME_ALACRITTY, APP_NAME_ZED};
 use crate::support::{clipboard, jsons, os, proc, tmux, zed};
 use clap::Parser as _;
 use lazy_regex::regex;
-use serde::Deserialize;
 use simple_fs::{SPath, list_files, read_to_string};
 use std::time::Duration;
 use std::{env, fs, thread};
@@ -29,43 +29,6 @@ pub fn execute() -> Result<()> {
 
 const BOTTOM_MARGIN: i32 = 24;
 const ALACRITTY_BIN: &str = "/Applications/Alacritty.app/Contents/MacOS/alacritty";
-
-// region:    --- Types
-
-#[derive(Deserialize)]
-struct ProfilesConfig {
-	order: Vec<String>,
-	#[serde(flatten)]
-	profiles: std::collections::HashMap<String, Profile>,
-}
-
-#[derive(Deserialize)]
-struct Profile {
-	#[serde(default)]
-	terminal_dims: TerminalDims,
-}
-
-#[derive(Deserialize)]
-struct CurrentProfile {
-	current_profile: String,
-}
-
-#[derive(Deserialize)]
-struct TerminalDims {
-	width: i32,
-	height: i32,
-}
-
-impl Default for TerminalDims {
-	fn default() -> Self {
-		Self {
-			width: 1816,
-			height: 510, // works well with demo size
-		}
-	}
-}
-
-// endregion: --- Types
 
 // region:    --- Exec Handlers
 
@@ -325,13 +288,33 @@ fn load_current_terminal_dims() -> Result<TerminalDims> {
 		return Ok(TerminalDims::default());
 	}
 
-	let profiles_content = read_to_string(&profiles_path)?;
-	let profiles_config: ProfilesConfig = serde_json::from_str(&profiles_content)?;
-
 	let current_content = read_to_string(&current_path)?;
 	let current_config: CurrentProfile = serde_json::from_str(&current_content)?;
 
+	let mut profiles_content = read_to_string(&profiles_path)?;
+	let mut profiles_config: ProfilesConfig = serde_json::from_str(&profiles_content)?;
+
 	let _ = &profiles_config.order;
+
+	if profiles_config
+		.profiles
+		.values()
+		.any(|profile| profile.terminal_dims.width == 0 || profile.terminal_dims.height == 0)
+	{
+		for profile in profiles_config.profiles.values_mut() {
+			if profile.terminal_dims.width == 0 || profile.terminal_dims.height == 0 {
+				profile.terminal_dims = TerminalDims::default();
+			}
+		}
+
+		std::fs::write(
+			profiles_path.std_path(),
+			serde_json::to_string_pretty(&profiles_config)?,
+		)?;
+
+		profiles_content = read_to_string(&profiles_path)?;
+		profiles_config = serde_json::from_str(&profiles_content)?;
+	}
 
 	let terminal_dims = profiles_config
 		.profiles

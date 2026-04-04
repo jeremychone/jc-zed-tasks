@@ -10,43 +10,43 @@ use std::fs;
 // region:    --- Types
 
 #[derive(Deserialize, Serialize)]
-struct ProfilesConfig {
-	order: Vec<String>,
+pub(crate) struct ProfilesConfig {
+	pub(crate) order: Vec<String>,
 	#[serde(flatten)]
-	profiles: HashMap<String, Profile>,
+	pub(crate) profiles: HashMap<String, Profile>,
 }
 
 #[derive(Deserialize, Serialize)]
-struct Profile {
-	zed_config: Vec<ConfigEntry>,
-	alacritty_config: Vec<ConfigEntry>,
+pub(crate) struct Profile {
+	pub(crate) zed_config: Vec<ConfigEntry>,
+	pub(crate) alacritty_config: Vec<ConfigEntry>,
 
 	#[serde(default)]
-	terminal_dims: TerminalDims,
+	pub(crate) terminal_dims: TerminalDims,
 }
 
 #[derive(Deserialize, Serialize)]
-struct ConfigEntry {
+pub(crate) struct ConfigEntry {
 	config_path: Vec<String>,
 	value: serde_json::Value,
 }
 
 #[derive(Deserialize, Serialize)]
-struct CurrentProfile {
-	current_profile: String,
+pub(crate) struct CurrentProfile {
+	pub(crate) current_profile: String,
 }
 
 #[derive(Deserialize, Serialize)]
-struct TerminalDims {
-	width: i32,
-	height: i32,
+pub(crate) struct TerminalDims {
+	pub(crate) width: i32,
+	pub(crate) height: i32,
 }
 
 impl Default for TerminalDims {
 	fn default() -> Self {
 		Self {
-			width: 960,
-			height: 284,
+			width: 1816,
+			height: 512, // works well with demo size
 		}
 	}
 }
