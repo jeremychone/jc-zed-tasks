@@ -1,6 +1,8 @@
 use crate::Result;
 use crate::cli::cmd::ToggleProfileArgs;
 use crate::support::{alacritty, jsons, tomls, zed};
+#[cfg(target_os = "macos")]
+use crate::support::mac::common::{APP_NAME_ALACRITTY, get_front_window_bounds, set_front_window_bounds};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use simple_fs::{SPath, read_to_string};
@@ -130,6 +132,8 @@ fn toggle_profile(target_profile: Option<String>) -> Result<()> {
 		fs::write(alacritty_path.std_path(), alacritty_content)?;
 	}
 
+	apply_terminal_dims(&next_profile.terminal_dims)?;
+
 	// -- Save changes
 	let new_current = CurrentProfile {
 		current_profile: next_profile_name.clone(),
@@ -232,6 +236,26 @@ fn init_profiles_if_missing(config_dir: &SPath, profiles_path: &SPath, current_p
 	};
 	fs::write(current_path.std_path(), serde_json::to_string_pretty(&current_profile)?)?;
 
+	Ok(())
+}
+
+#[cfg(target_os = "macos")]
+fn apply_terminal_dims(terminal_dims: &TerminalDims) -> Result<()> {
+	let current_bounds = get_front_window_bounds(APP_NAME_ALACRITTY)?;
+	let next_bounds = crate::support::mac::types::WindowBounds {
+		x: current_bounds.x,
+		y: current_bounds.y,
+		width: terminal_dims.width,
+		height: terminal_dims.height,
+	};
+
+	set_front_window_bounds(APP_NAME_ALACRITTY, next_bounds)?;
+
+	Ok(())
+}
+
+#[cfg(not(target_os = "macos"))]
+fn apply_terminal_dims(_terminal_dims: &TerminalDims) -> Result<()> {
 	Ok(())
 }
 
