@@ -1,10 +1,11 @@
 use crate::Result;
 use crate::cli::cmd::ToggleProfileArgs;
-use crate::support::{alacritty, jsons, tomls, zed};
 #[cfg(target_os = "macos")]
 use crate::support::mac::{
-	APP_NAME_ALACRITTY, WindowBounds, get_front_window_bounds, move_window_front_by_window_name, set_front_window_bounds,
+	APP_NAME_ALACRITTY, WindowBounds, get_front_window_bounds, move_window_front_by_window_name,
+	set_front_window_bounds,
 };
+use crate::support::{alacritty, jsons, tomls, zed};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use simple_fs::{SPath, read_to_string};
@@ -243,7 +244,7 @@ fn init_profiles_if_missing(config_dir: &SPath, profiles_path: &SPath, current_p
 
 #[cfg(target_os = "macos")]
 fn apply_terminal_dims(terminal_dims: &TerminalDims) -> Result<()> {
-	let home = home::home_dir().ok_or("Could not find home directory")?;
+	let _home = home::home_dir().ok_or("Could not find home directory")?;
 	let cwd = std::env::current_dir()?;
 	let cwd = SPath::from_std_path(&cwd)?;
 	let title = format!("zed term - {cwd}");

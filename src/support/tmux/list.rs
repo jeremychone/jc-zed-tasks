@@ -2,6 +2,7 @@ use crate::Result;
 use crate::support::proc::run_proc;
 use crate::support::tmux::types::*;
 use simple_fs::SPath;
+use std::sync::Arc;
 
 const TMUX_LIST_FORMAT: &str = "#{?session_attached,ATTACHED,DETACHED} #S:#I.#P #{window_name} [#{pane_title}] #{pane_current_path} #{pane_current_command} #{session_id} #{window_id} #{pane_id} #{window_active} #{pane_active}";
 
@@ -162,12 +163,12 @@ fn parse_line(line: &str) -> Option<LineParts> {
 	Some(LineParts {
 		s_name: s_name.to_string(),
 		attached,
-		s_id: SessionId::from(std::sync::Arc::from(s_id_str)),
+		s_id: SessionId::from(Arc::from(s_id_str)),
 		w_idx,
-		w_id: WindowId::from(std::sync::Arc::from(w_id_str)),
+		w_id: WindowId::from(Arc::from(w_id_str)),
 		w_name,
 		p_idx,
-		p_id: PaneId::from(std::sync::Arc::from(p_id_str)),
+		p_id: PaneId::from(Arc::from(p_id_str)),
 		p_title,
 		path: SPath::new(path),
 		cmd: cmd.to_string(),
