@@ -2,7 +2,7 @@ use crate::Result;
 use crate::cli::cmd::ToggleProfileArgs;
 use crate::support::{alacritty, jsons, tomls, zed};
 #[cfg(target_os = "macos")]
-use crate::support::mac::common::{APP_NAME_ALACRITTY, get_front_window_bounds, set_front_window_bounds};
+use crate::support::mac::{APP_NAME_ALACRITTY, WindowBounds, get_front_window_bounds, set_front_window_bounds};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use simple_fs::{SPath, read_to_string};
@@ -242,7 +242,7 @@ fn init_profiles_if_missing(config_dir: &SPath, profiles_path: &SPath, current_p
 #[cfg(target_os = "macos")]
 fn apply_terminal_dims(terminal_dims: &TerminalDims) -> Result<()> {
 	let current_bounds = get_front_window_bounds(APP_NAME_ALACRITTY)?;
-	let next_bounds = crate::support::mac::types::WindowBounds {
+	let next_bounds = WindowBounds {
 		x: current_bounds.x,
 		y: current_bounds.y,
 		width: terminal_dims.width,
