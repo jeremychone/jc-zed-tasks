@@ -151,11 +151,11 @@ fn toggle_profile(target_profile: Option<String>) -> Result<()> {
 		serde_json::to_string_pretty(&new_current)?,
 	)?;
 	// For now, we duplicate to the spoons
-	println!("->> profile_current_spoon_path {profile_current_spoon_path}");
-	fs::write(
+	// TODO: Should only update if folder exist to be more resiliy.
+	let _ = fs::write(
 		profile_current_spoon_path.std_path(),
 		serde_json::to_string_pretty(&new_current)?,
-	)?;
+	);
 
 	println!("Switched to profile: {next_profile_name}");
 
