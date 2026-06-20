@@ -4,10 +4,10 @@ Just to share, cherry-pick what you need.
 
 Related Repos: 
 - [jc-zed-config](https://github.com/jeremychone/jc-zed-config), Theme, snippets, shortcuts, and more
-- [jc-hammer](https://github.com/jeremychone/jc-hammer), `jc.spoon` for [Hammerspoon](https://www.hammerspoon.org/), Open/Close Zed projects and position term
 - **[jc-zed-tasks (this one)](https://github.com/jeremychone/jc-zed-tasks)**, Save clipboard to image, HTML to MD
 - [jc-tmux-config](https://github.com/jeremychone/jc-tmux-config)
 - [jc-alacritty-config](https://github.com/jeremychone/jc-alacritty-config)
+- [jc-hammer](https://github.com/jeremychone/jc-hammer), `jc.spoon` for [Hammerspoon](https://www.hammerspoon.org/), Open/Close Zed projects and position term
 
 Feel free to use it as such, or cherry pick what you need, or fork and make it your own.
 
