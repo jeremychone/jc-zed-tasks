@@ -18,9 +18,6 @@ pub enum CliSubCmd {
 	/// Toggle through Zed profiles
 	ToggleProfile(ToggleProfileArgs),
 
-	/// Open a new Alacritty development terminal
-	NewDevTerm(NewDevTermArgs),
-
 	/// Save image from clipboard to a directory with auto-increment name
 	SaveClipboardImage(SaveClipboardImageArgs),
 

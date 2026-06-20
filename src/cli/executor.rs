@@ -1,16 +1,11 @@
 use crate::Result;
-use crate::cli::cmd::{
-	AutoPos, CliCmd, CliSubCmd, MdToHtmlArgs, NewDevTermArgs, SaveClipboardImageArgs, TmuxRunAipArgs,
-};
+use crate::cli::cmd::{CliCmd, CliSubCmd, MdToHtmlArgs, SaveClipboardImageArgs, TmuxRunAipArgs};
 use crate::cli::exec_toggle;
-use crate::cli::exec_toggle::{CurrentProfile, ProfilesConfig, TerminalDims};
-use crate::support::mac::{self, APP_NAME_ALACRITTY, APP_NAME_ZED};
-use crate::support::{clipboard, jsons, os, proc, tmux, zed};
+use crate::support::{clipboard, jsons, tmux, zed};
 use clap::Parser as _;
 use lazy_regex::regex;
 use simple_fs::{SPath, list_files, read_to_string};
-use std::time::Duration;
-use std::{env, fs, thread};
+use std::fs;
 
 pub fn execute() -> Result<()> {
 	let cli_cmd = CliCmd::parse();
@@ -19,16 +14,12 @@ pub fn execute() -> Result<()> {
 		CliSubCmd::TmuxRunAip(args) => exec_tmux_run_aip(args)?,
 		CliSubCmd::ZedToggleAi => exec_zed_toggle_ai()?,
 		CliSubCmd::ToggleProfile(args) => exec_toggle::exec_command(args)?,
-		CliSubCmd::NewDevTerm(args) => exec_new_dev_term(args)?,
 		CliSubCmd::SaveClipboardImage(args) => exec_save_clipboard_image(args)?,
 		CliSubCmd::MdToHtml(args) => exec_md_to_html(args)?,
 	}
 
 	Ok(())
 }
-
-const BOTTOM_MARGIN: i32 = 24;
-const ALACRITTY_BIN: &str = "/Applications/Alacritty.app/Contents/MacOS/alacritty";
 
 // region:    --- Exec Handlers
 
@@ -141,119 +132,6 @@ fn exec_tmux_run_aip(args: TmuxRunAipArgs) -> Result<()> {
 	Ok(())
 }
 
-fn exec_new_dev_term(args: NewDevTermArgs) -> Result<()> {
-	let cwd = SPath::new(args.cwd);
-	let cwd = if cwd.is_relative() {
-		SPath::from_std_path(env::current_dir()?)?.join(cwd)
-	} else {
-		cwd
-	};
-
-	let title = format!("zed term - {cwd}");
-	let mut window_already_exists = false;
-
-	if args.show_if_present {
-		if os::is_mac() {
-			if mac::move_window_front_by_window_name(APP_NAME_ALACRITTY, &title)? {
-				if !args.reposition || args.pos.is_none() {
-					return Ok(());
-				}
-				window_already_exists = true;
-			}
-		} else {
-			eprintln!("Warning: --show-if-present is only supported on macOS.");
-		}
-	}
-
-	let mut proc_args: Vec<String> = if crate::support::proc::is_proc_running("alacritty") {
-		vec![
-			"msg".to_string(),
-			"create-window".to_string(),
-			"--title".to_string(),
-			title.clone(),
-			"--working-directory".to_string(),
-			cwd.to_string(),
-		]
-	} else {
-		vec![
-			"--title".to_string(),
-			title.clone(),
-			"--working-directory".to_string(),
-			cwd.to_string(),
-		]
-	};
-
-	if args.with_tmux {
-		proc_args.extend(["-e".to_string(), "tmux".to_string(), "new-session".to_string()]);
-	}
-
-	// -- Get Zed bounds (only if pos is requested)
-	let bound_and_pos = if let Some(auto_pos) = args.pos {
-		if os::is_mac() {
-			let bounds = mac::get_front_window_bounds(APP_NAME_ZED);
-			if let Err(ref err) = bounds {
-				eprintln!("Warning: Could not get Zed bounds: {err}");
-			}
-			bounds.map(|zb| (zb, auto_pos)).ok()
-		} else {
-			eprintln!("Warning: Window positioning is only supported on macOS.");
-			None
-		}
-	} else {
-		None
-	};
-
-	// -- Detach and run
-	if !window_already_exists {
-		let proc_args: Vec<&str> = proc_args.iter().map(|s| s.as_str()).collect();
-		proc::run_proc_detach_spawn(ALACRITTY_BIN, &proc_args)?;
-	}
-
-	// NOTE: Because the way proc_detach use deamon, here it won't print in the zed window
-
-	if let Some((zb, auto_pos)) = bound_and_pos {
-		// Wait for window to be created and focus it
-		let mut focused = false;
-		for _ in 0..10 {
-			if mac::move_window_front_by_window_name(APP_NAME_ALACRITTY, &title)? {
-				focused = true;
-				break;
-			}
-			thread::sleep(Duration::from_millis(100));
-		}
-
-		if !focused {
-			return Err(format!("Could not focus the newly created terminal window '{title}' for positioning").into());
-		}
-
-		// Get Alacritty bounds to calculate relative position
-		let terminal_dims = load_current_terminal_dims()?;
-
-		// Calculate relative position (centered horizontally)
-		let ax = zb.x + (zb.width - terminal_dims.width) / 2;
-		let ay = match auto_pos {
-			AutoPos::Below => zb.y + zb.height + 4,
-			AutoPos::Bottom => zb.y + zb.height - terminal_dims.height - BOTTOM_MARGIN,
-		};
-
-		mac::set_front_window_bounds(
-			APP_NAME_ALACRITTY,
-			mac::WindowBounds {
-				x: ax,
-				y: ay,
-				width: terminal_dims.width,
-				height: terminal_dims.height,
-			},
-		)?;
-	} else {
-		if args.pos.is_some() {
-			println!("Zed bounds not found, running detached.");
-		}
-	}
-
-	Ok(())
-}
-
 fn exec_zed_toggle_ai() -> Result<()> {
 	let home = home::home_dir().ok_or("Could not find home directory")?;
 	let settings_path = SPath::from_std_path(home)?.join(".config/zed/settings.json");
@@ -275,57 +153,3 @@ fn exec_zed_toggle_ai() -> Result<()> {
 }
 
 // endregion: --- Exec Handlers
-
-// region:    --- Support
-
-fn load_current_terminal_dims() -> Result<TerminalDims> {
-	let home = home::home_dir().ok_or("Could not find home directory")?;
-	let config_dir = SPath::from_std_path(&home)?.join(".config/jc-zed-tasks");
-	let profiles_path = config_dir.join("profiles.json");
-	let current_path = config_dir.join("profile-current.json");
-
-	if !profiles_path.exists() || !current_path.exists() {
-		return Ok(TerminalDims::default());
-	}
-
-	let current_content = read_to_string(&current_path)?;
-	let current_config: CurrentProfile = serde_json::from_str(&current_content)?;
-
-	let mut profiles_content = read_to_string(&profiles_path)?;
-	let mut profiles_config: ProfilesConfig = serde_json::from_str(&profiles_content)?;
-
-	let _ = &profiles_config.order;
-
-	if profiles_config
-		.profiles
-		.values()
-		.any(|profile| profile.terminal_dims.width == 0 || profile.terminal_dims.height == 0)
-	{
-		for profile in profiles_config.profiles.values_mut() {
-			if profile.terminal_dims.width == 0 || profile.terminal_dims.height == 0 {
-				profile.terminal_dims = TerminalDims::default();
-			}
-		}
-
-		std::fs::write(
-			profiles_path.std_path(),
-			serde_json::to_string_pretty(&profiles_config)?,
-		)?;
-
-		profiles_content = read_to_string(&profiles_path)?;
-		profiles_config = serde_json::from_str(&profiles_content)?;
-	}
-
-	let terminal_dims = profiles_config
-		.profiles
-		.get(&current_config.current_profile)
-		.map(|profile| TerminalDims {
-			width: profile.terminal_dims.width,
-			height: profile.terminal_dims.height,
-		})
-		.unwrap_or_default();
-
-	Ok(terminal_dims)
-}
-
-// endregion: --- Support

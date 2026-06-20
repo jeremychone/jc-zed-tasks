@@ -12,6 +12,8 @@ pub fn run_proc(cmd: &str, args: &[&str]) -> Result<String> {
 	Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
+// Might be needed later (was for the term new/pos which is now hammerspoon)
+#[allow(unused)]
 pub fn is_proc_running(name: &str) -> bool {
 	Command::new("pgrep")
 		.arg("-x")
@@ -21,6 +23,8 @@ pub fn is_proc_running(name: &str) -> bool {
 		.unwrap_or(false)
 }
 
+// Might be needed later (was for the term new/pos which is now hammerspoon)
+#[allow(unused)]
 pub fn run_proc_detach_spawn(cmd: &str, args: &[&str]) -> Result<()> {
 	run_proc_daemon(|| {
 		// spawn and do not wait
@@ -37,6 +41,7 @@ pub fn run_proc_detach_spawn(cmd: &str, args: &[&str]) -> Result<()> {
 	})
 }
 
+// Might be needed later (was for the term new/pos which is now hammerspoon)
 pub fn run_proc_daemon<F>(f: F) -> Result<()>
 where
 	F: FnOnce() -> Result<()>,

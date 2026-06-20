@@ -3,7 +3,6 @@ use crate::support::mac::support::run_applescript;
 use crate::support::mac::types::*;
 use std::sync::Arc;
 
-pub const APP_NAME_ZED: &str = "zed";
 pub const APP_NAME_ALACRITTY: &str = "alacritty";
 
 /// Get the bounds of the frontmost (active) window for the given application.
@@ -185,6 +184,7 @@ pub fn get_all_app_names() -> Result<Vec<String>> {
 #[cfg(test)]
 mod tests {
 	type Result<T> = core::result::Result<T, Box<dyn std::error::Error>>;
+	pub const APP_NAME_ZED: &str = "zed";
 
 	use super::*;
 
