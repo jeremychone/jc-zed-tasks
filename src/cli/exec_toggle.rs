@@ -8,7 +8,7 @@ use crate::support::mac::{
 use crate::support::{alacritty, jsons, tomls, zed};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use simple_fs::{SPath, read_to_string};
+use simple_fs::{SPath, home_dir, read_to_string};
 use std::collections::HashMap;
 use std::fs;
 
@@ -65,13 +65,18 @@ pub fn exec_command(args: ToggleProfileArgs) -> Result<()> {
 // region:    --- Support
 
 fn toggle_profile(target_profile: Option<String>) -> Result<()> {
-	let home = home::home_dir().ok_or("Could not find home directory")?;
-	let config_dir = SPath::from_std_path(&home)?.join(".config/jc-zed-tasks");
-	let profiles_path = config_dir.join("profiles.json");
-	let current_path = config_dir.join("profile-current.json");
-	let settings_path = SPath::from_std_path(&home)?.join(".config/zed/settings.json");
+	let home = home_dir()?;
 
-	init_profiles_if_missing(&config_dir, &profiles_path, &current_path)?;
+	let config_dir = home.join(".config/jc-zed-tasks");
+
+	let profiles_path = config_dir.join("profiles.json");
+	let profile_current_path = config_dir.join("profile-current.json");
+	let settings_path = home.join(".config/zed/settings.json");
+
+	// for now we duplicate the profile there.
+	let profile_current_spoon_path = home.join(".hammerspoon/Spoons/jc.spoon/.user/profile_current.json");
+
+	init_profiles_if_missing(&config_dir, &profiles_path, &profile_current_path)?;
 
 	if !settings_path.exists() {
 		return Err(format!("Zed settings file not found at: {settings_path}").into());
@@ -84,8 +89,8 @@ fn toggle_profile(target_profile: Option<String>) -> Result<()> {
 		return Err("No profiles defined in 'order' array in profiles.json".into());
 	}
 
-	let current_profile_name = if current_path.exists() {
-		let current_content = read_to_string(&current_path)?;
+	let current_profile_name = if profile_current_path.exists() {
+		let current_content = read_to_string(&profile_current_path)?;
 		let current_config: CurrentProfile = serde_json::from_str(&current_content)?;
 		current_config.current_profile
 	} else {
@@ -141,7 +146,16 @@ fn toggle_profile(target_profile: Option<String>) -> Result<()> {
 	let new_current = CurrentProfile {
 		current_profile: next_profile_name.clone(),
 	};
-	fs::write(current_path.std_path(), serde_json::to_string_pretty(&new_current)?)?;
+	fs::write(
+		profile_current_path.std_path(),
+		serde_json::to_string_pretty(&new_current)?,
+	)?;
+	// For now, we duplicate to the spoons
+	println!("->> profile_current_spoon_path {profile_current_spoon_path}");
+	fs::write(
+		profile_current_spoon_path.std_path(),
+		serde_json::to_string_pretty(&new_current)?,
+	)?;
 
 	println!("Switched to profile: {next_profile_name}");
 
