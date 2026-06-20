@@ -5,13 +5,13 @@ use std::sync::Arc;
 
 // region:    --- Data Structures
 
-#[mra::derive(Id!)]
+#[mra::derive(Id!, derive_more::From)]
 pub struct SessionId(Arc<str>);
 
-#[mra::derive(Id!)]
+#[mra::derive(Id!, derive_more::From)]
 pub struct WindowId(Arc<str>);
 
-#[mra::derive(Id!)]
+#[mra::derive(Id!, derive_more::From)]
 pub struct PaneId(Arc<str>);
 
 #[allow(unused)]

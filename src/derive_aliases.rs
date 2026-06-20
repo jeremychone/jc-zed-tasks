@@ -15,6 +15,6 @@ derive_alias! {
 		crate::Hash!,
 		derive_more::Display,
 		derive_more::Deref,
-		derive_more::From
+		// derive_more::From
 	)];
 }
