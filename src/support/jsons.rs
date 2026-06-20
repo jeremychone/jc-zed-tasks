@@ -21,6 +21,7 @@ pub fn parse_jsonc_to_serde_value(content: &str) -> Result<Option<serde_json::Va
 		allow_single_quoted_strings: false,
 		allow_hexadecimal_numbers: false,
 		allow_unary_plus_numbers: false,
+		allow_missing_commas: false,
 	};
 
 	let json_value = jsonc_parser::parse_to_serde_value(content, &OPTIONS).map_err(|err| {
